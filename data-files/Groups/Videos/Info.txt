@@ -1,0 +1,4 @@
+All videos on one page.
+
+Videos generated using FFmpeg:
+ffmpeg -framerate 1 -i image%1d.jpg video.mp4
