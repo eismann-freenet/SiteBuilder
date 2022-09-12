@@ -1,0 +1,7 @@
+*.dcu
+/*.exe
+/*.identcache
+/*.local
+/*.res
+/site/
+/thumbnail-infos/
