@@ -27,3 +27,20 @@ Version 1.0
 - Added ability to include static files to the freesite.
 - Cache infos about generated thumbnails in
   text-files (one file for each thumbnail).
+
+Version 1.1
+- Thumbnails are now generated with FFmpeg and ImageMagick.
+  mtn is no longer used.
+- Thumbnail infos are now cached in a SQLite-datebase.
+  The text-files are no longer used.
+- Added generation of CRC- and SFV-Files.
+- Updated replacement-rules for all Cyrillic,
+  German and Spanish letters.
+- Added support for bigger/full thumbnails for selected keys.
+- Changed the encoding of all generated files of
+  the freesite to UTF-8 (without BOM).
+- Added tool ThumbnailMaker, to generate thumbnails from videos
+  with the new thumbnail-class from SiteBuilder.
+- Fixed a lot of bugs.
+- Added meta-tags for author and description to every
+  generated html-file of the freesite.
