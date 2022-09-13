@@ -1,0 +1,29 @@
+Changelog
+---------
+
+Version 0.9
+- Single class named FileInfo.
+- Implemented in PHP.
+- Format filesize.
+- Perhaps some other things, which I can't remember.
+- Version was deleted, because PHP 5 did not support Unicode under
+  Windows XP/7. PHP 6, which should add Unicode-support is not released
+  yet.
+
+Version 1.0
+- Ported the class FileInfo to Delphi: TFileInfo.
+- Added summary (count of key, total filesize, ...) to every
+  page which contain keys (named section).
+- Added logging-mechanism.
+- Added changelog (based on a CSV-File).
+- Added index-page with an hierarchic view of all sections.
+- Added some basic replacement rules for filenames to support filenames
+  with Unicode-characters (Freenet can't display such files;
+  all characters in a filename has to be latin1).
+- Added configuration file to read all options.
+- Added CSV-files to read the keys of the freesite.
+- Added generation of video-thumbnails,
+  created with mtn (movie thumbnailer).
+- Added ability to include static files to the freesite.
+- Cache infos about generated thumbnails in
+  text-files (one file for each thumbnail).
