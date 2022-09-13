@@ -1,5 +1,5 @@
 {
-  Copyright 2014 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,18 +19,20 @@ unit TemplateChangelog;
 interface
 
 uses
-  SiteBuilder;
+  ChangelogEntryList;
 
 procedure WriteChangelog(const Filename, IndexFilename: string;
-  const Changelog: TChangelogEntryList);
+  const Changelog: TChangelogEntryList; const SiteAuthor,
+  SiteDescription: string);
 
 implementation
 
 uses
-  Classes, SysUtils, ChangelogEntry, HTTPUtil;
+  Classes, SysUtils, ChangelogEntry, HTTPUtil, SiteEncoding;
 
 procedure WriteChangelog(const Filename, IndexFilename: string;
-  const Changelog: TChangelogEntryList);
+  const Changelog: TChangelogEntryList; const SiteAuthor,
+  SiteDescription: string);
 var
   Output: TStringList;
   ChangelogEntry: TChangelogEntry;
@@ -47,6 +49,10 @@ begin
       );
     Output.Add('  <meta http-equiv="content-language" content="en" />');
     Output.Add('  <meta name="language" content="en" />');
+    Output.Add('  <meta name="author" content="' + HTMLEscape(SiteAuthor)
+        + '" />');
+    Output.Add('  <meta name="description" content="' + HTMLEscape
+        (SiteDescription) + '" />');
     Output.Add(
       '  <link rel="stylesheet" type="text/css" media="all" href="design.css" />');
     Output.Add('  <title>Changelog</title>');
@@ -68,7 +74,7 @@ begin
     Output.Add('    </thead>');
     Output.Add('    <tbody>');
 
-    for ChangelogEntry in Changelog do
+    for ChangelogEntry in Changelog.List do
     begin
       Output.Add('      <tr>');
       Output.Add('        <td>' + IntToStr(ChangelogEntry.Edition) + '</td>');
@@ -83,7 +89,7 @@ begin
     Output.Add('</body>');
     Output.Add('</html>');
 
-    Output.SaveToFile(Filename, TEncoding.UTF8);
+    Output.SaveToFile(Filename, TSiteEncoding.Encoding);
   finally
     Output.Free;
   end;

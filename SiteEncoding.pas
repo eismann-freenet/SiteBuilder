@@ -14,43 +14,46 @@
   limitations under the License.
 }
 
-unit ChangelogEntry;
+unit SiteEncoding;
 
 interface
 
 uses
-  Classes;
+  SysUtils;
 
 type
-  TChangelogEntry = class(TPersistent)
+  TSiteEncoding = class
 
   strict private
-    FEdition: Integer;
-    FDescription: string;
+    class var FEncoding: TEncoding;
+    class function GetEncoding: TEncoding; static;
 
-  published
-    property Edition: Integer read FEdition;
-    property Description: string read FDescription;
+  protected
+    class constructor Create;
+    class destructor Destroy;
 
   public
-    constructor Create(const Edition: Integer; const Description: string);
-    destructor Destroy; override;
+    class property Encoding: TEncoding read GetEncoding;
   end;
 
 implementation
 
-{ TChangelogEntry }
+uses
+  UTF8EncodingNoBOM;
 
-constructor TChangelogEntry.Create(const Edition: Integer;
-  const Description: string);
+class constructor TSiteEncoding.Create;
 begin
-  FEdition := Edition;
-  FDescription := Description;
+  FEncoding := TUTF8EncodingNoBOM.Create;
 end;
 
-destructor TChangelogEntry.Destroy;
+class destructor TSiteEncoding.Destroy;
 begin
-  inherited Destroy;
+  FEncoding.Free;
+end;
+
+class function TSiteEncoding.GetEncoding: TEncoding;
+begin
+  Result := FEncoding;
 end;
 
 end.

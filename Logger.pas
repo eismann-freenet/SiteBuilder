@@ -1,5 +1,5 @@
 {
-  Copyright 2014 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -29,22 +29,32 @@ type
 
     class procedure Log(const Msg: string);
 
+  protected
+    class constructor Create;
+    class destructor Destroy;
+
   public
-    class procedure Init;
     class procedure LogFatal(const Msg: string);
     class procedure LogError(const Msg: string);
-    class procedure LogWarning(const Msg: string);
     class procedure LogInfo(const Msg: string);
     class function IsError: Boolean;
   end;
 
 implementation
 
+uses
+  SysUtils;
+
 { TLogger }
 
-class procedure TLogger.Init;
+class constructor TLogger.Create;
 begin
   ErrorCount := 0;
+end;
+
+class destructor TLogger.Destroy;
+begin
+  // nothing do to here
 end;
 
 class function TLogger.IsError: Boolean;
@@ -61,16 +71,12 @@ end;
 class procedure TLogger.LogFatal(const Msg: string);
 begin
   Log('Fatal: ' + Msg);
+  raise Exception.Create(Msg);
 end;
 
 class procedure TLogger.LogInfo(const Msg: string);
 begin
   Log('Info : ' + Msg);
-end;
-
-class procedure TLogger.LogWarning(const Msg: string);
-begin
-  Log('Warn : ' + Msg);
 end;
 
 class procedure TLogger.LogError(const Msg: string);

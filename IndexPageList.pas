@@ -1,5 +1,5 @@
 {
-  Copyright 2014 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -27,10 +27,13 @@ type
   strict private
     FData: TObjectList<TIndexPage>;
 
+  published
+    property List: TObjectList<TIndexPage>read FData;
+
   public
     procedure Add(Value: TIndexPage);
+    procedure AddFirst(Value: TIndexPage);
     procedure Sort;
-    function GetContent: TObjectList<TIndexPage>;
 
     constructor Create;
     destructor Destroy; override;
@@ -48,6 +51,11 @@ begin
   FData.Add(Value);
 end;
 
+procedure TIndexPageList.AddFirst(Value: TIndexPage);
+begin
+  FData.Insert(0, Value);
+end;
+
 constructor TIndexPageList.Create;
 begin
   FData := TObjectList<TIndexPage>.Create;
@@ -57,11 +65,6 @@ destructor TIndexPageList.Destroy;
 begin
   FData.Free;
   inherited Destroy;
-end;
-
-function TIndexPageList.GetContent: TObjectList<TIndexPage>;
-begin
-  Result := FData;
 end;
 
 procedure TIndexPageList.Sort;

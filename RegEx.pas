@@ -1,5 +1,5 @@
 {
-  Copyright 2014 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -23,11 +23,13 @@ uses
 
 function GetRegExResult(var RegexObj: TPerlRegEx; const Subject, RegEx: string)
   : string;
+function RegExReplace(var RegexObj: TPerlRegEx; const Subject, RegEx,
+  Replace: string): string;
 
 implementation
 
 uses
-  SysUtils;
+  SysUtils, Logger;
 
 function GetRegExResult(var RegexObj: TPerlRegEx; const Subject, RegEx: string)
   : string;
@@ -51,7 +53,23 @@ begin
   end
   else
   begin
-    raise EAssertionFailed.Create('No match for regex ''' + RegEx + '''!');
+    TLogger.LogFatal(Format('No match for regex "%s" and subject "%s"!',
+        [RegEx, Subject]));
+  end;
+end;
+
+function RegExReplace(var RegexObj: TPerlRegEx; const Subject, RegEx,
+  Replace: string): string;
+begin
+  Result := Subject;
+  RegexObj.Subject := UTF8Encode(Subject);
+  RegexObj.RegEx := UTF8Encode(RegEx);
+  RegexObj.Replacement := UTF8Encode(Replace);
+
+  if RegexObj.Match then
+  begin
+    RegexObj.ReplaceAll;
+    Result := UTF8ToString(RegexObj.Subject);
   end;
 end;
 

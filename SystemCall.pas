@@ -1,5 +1,5 @@
 {
-  Copyright 2014 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@ interface
 uses
   Classes, SysUtils;
 
-function ExecuteOutput(const Command: string; Output, Errors: TStringList)
-  : Boolean;
+function ExecuteOutput(const Command: string; var Output: string): Boolean;
 function ExecuteWait(const Command: string): Boolean;
 function GetRandomTempFilename: string;
 function DeleteFiles(Files: TStringList): Boolean;
@@ -30,31 +29,30 @@ function DeleteFiles(Files: TStringList): Boolean;
 implementation
 
 uses
-  Windows, Forms, IOUtils;
+  Windows, Forms;
 
-procedure ReadPipe(Pipe: THandle; Output: TStringList);
+function ReadPipe(Pipe: THandle): string;
 var
-  Stream: TMemoryStream;
+  Stream: TStringStream;
   Buffer: array [0 .. 255] of Char;
   NumberOfBytesRead: Cardinal;
 begin
-  Stream := TMemoryStream.Create;
+  Stream := TStringStream.Create('');
+  NumberOfBytesRead := 0;
   try
     while ReadFile(Pipe, Buffer, 255, NumberOfBytesRead, nil) do
     begin
       Stream.Write(Buffer, NumberOfBytesRead);
     end;
-    Stream.Position := 0;
-    Output.LoadFromStream(Stream);
+    Result := Stream.DataString;
   finally
     Stream.Free;
   end;
 end;
 
-function ExecuteOutput(const Command: string; Output, Errors: TStringList)
-  : Boolean;
+function ExecuteOutput(const Command: string; var Output: string): Boolean;
 var
-  PipeErrorsRead, PipeErrorsWrite, PipeOutputRead, PipeOutputWrite: THandle;
+  PipeOutputRead, PipeOutputWrite: THandle;
   ProcessInfo: TProcessInformation;
   SecurityAttr: TSecurityAttributes;
   StartupInfo: TStartupInfo;
@@ -70,15 +68,14 @@ begin
   end;
 
   CreatePipe(PipeOutputRead, PipeOutputWrite, @SecurityAttr, 0);
-  CreatePipe(PipeErrorsRead, PipeErrorsWrite, @SecurityAttr, 0);
 
   FillChar(StartupInfo, SizeOf(TStartupInfo), 0);
   with StartupInfo do
   begin
     cb := SizeOf(TStartupInfo);
-    hStdInput := 0;
+    hStdInput := GetStdHandle(STD_INPUT_HANDLE);
     hStdOutput := PipeOutputWrite;
-    hStdError := PipeErrorsWrite;
+    hStdError := PipeOutputWrite;
     wShowWindow := SW_HIDE;
     dwFlags := STARTF_USESHOWWINDOW or STARTF_USESTDHANDLES;
   end;
@@ -90,13 +87,9 @@ begin
     Result := True;
 
     CloseHandle(PipeOutputWrite);
-    CloseHandle(PipeErrorsWrite);
 
-    ReadPipe(PipeOutputRead, Output);
+    Output := ReadPipe(PipeOutputRead);
     CloseHandle(PipeOutputRead);
-
-    ReadPipe(PipeErrorsRead, Errors);
-    CloseHandle(PipeErrorsRead);
 
     while WaitForSingleObject(ProcessInfo.hProcess, 10) > 0 do
     begin
@@ -111,8 +104,6 @@ begin
     Result := False;
     CloseHandle(PipeOutputRead);
     CloseHandle(PipeOutputWrite);
-    CloseHandle(PipeErrorsRead);
-    CloseHandle(PipeErrorsWrite);
   end;
 end;
 
@@ -122,7 +113,6 @@ var
   ProcessInfo: TProcessInformation;
 begin
   FillChar(ProcessInfo, SizeOf(TProcessInformation), 0);
-
   FillChar(StartupInfo, SizeOf(StartupInfo), 0);
   with StartupInfo do
   begin
@@ -151,9 +141,13 @@ begin
 end;
 
 function GetRandomTempFilename: string;
+var
+  Path, Filename: array [0 .. MAX_PATH - 1] of Char;
 begin
-  Result := TPath.GetTempFilename;
-  Result := StrPas(PChar(Result));
+  GetTempPath(SizeOf(Path), Path);
+  GetTempFileName(Path, '', 0, Filename);
+
+  Result := Filename;
   SysUtils.DeleteFile(Result);
 end;
 

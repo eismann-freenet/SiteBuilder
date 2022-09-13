@@ -14,43 +14,24 @@
   limitations under the License.
 }
 
-unit ChangelogEntry;
+unit UTF8EncodingNoBOM;
 
 interface
 
 uses
-  Classes;
+  SysUtils;
 
 type
-  TChangelogEntry = class(TPersistent)
-
-  strict private
-    FEdition: Integer;
-    FDescription: string;
-
-  published
-    property Edition: Integer read FEdition;
-    property Description: string read FDescription;
-
+  TUTF8EncodingNoBOM = class(TUTF8Encoding)
   public
-    constructor Create(const Edition: Integer; const Description: string);
-    destructor Destroy; override;
+    function GetPreamble: TBytes; override;
   end;
 
 implementation
 
-{ TChangelogEntry }
-
-constructor TChangelogEntry.Create(const Edition: Integer;
-  const Description: string);
+function TUTF8EncodingNoBOM.GetPreamble: TBytes;
 begin
-  FEdition := Edition;
-  FDescription := Description;
-end;
-
-destructor TChangelogEntry.Destroy;
-begin
-  inherited Destroy;
+  SetLength(Result, 0);
 end;
 
 end.

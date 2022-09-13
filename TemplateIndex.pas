@@ -1,5 +1,5 @@
 {
-  Copyright 2014 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -21,13 +21,15 @@ interface
 uses
   IndexPageList;
 
-procedure WriteIndex(const Filename, ChangelogFile, SiteKey, SiteName: string;
+procedure WriteIndex(const Filename, ChangelogFile, SiteKey, SiteName,
+  SiteAuthor, SiteDescription: string; const MaxEdition: Integer;
   const Pages: TIndexPageList);
 
 implementation
 
 uses
-  Classes, SysUtils, IndexPage, Tools, HTTPUtil;
+  Classes, SysUtils, IndexPage, HTTPUtil, Tools, SiteEncoding, StringReplacer,
+  FileInfo;
 
 function Spaces(const Count: Integer): string;
 var
@@ -56,7 +58,8 @@ begin
   end;
 end;
 
-procedure WriteIndex(const Filename, ChangelogFile, SiteKey, SiteName: string;
+procedure WriteIndex(const Filename, ChangelogFile, SiteKey, SiteName,
+  SiteAuthor, SiteDescription: string; const MaxEdition: Integer;
   const Pages: TIndexPageList);
 var
   Output, LastTitleParts, TitleParts: TStringList;
@@ -82,29 +85,33 @@ begin
       );
     Output.Add('  <meta http-equiv="content-language" content="en" />');
     Output.Add('  <meta name="language" content="en" />');
+    Output.Add('  <meta name="author" content="' + HTMLEscape(SiteAuthor)
+        + '" />');
+    Output.Add('  <meta name="description" content="' + HTMLEscape
+        (SiteDescription) + '" />');
     Output.Add(
       '  <link rel="stylesheet" type="text/css" media="all" href="design.css" />');
-    Output.Add('  <title>' + SiteName + '</title>');
+    Output.Add('  <title>' + HTMLEscape(SiteName) + '</title>');
     Output.Add('</head>');
     Output.Add('<body>');
-    Output.Add('  <h1>' + SiteName + '</h1>');
+    Output.Add('  <h1>' + HTMLEscape(SiteName) + '</h1>');
     Output.Add('');
     Output.Add('  <ul>');
 
     OpenLevel := 0;
 
-    for I := 0 to Pages.GetContent.Count - 1 do
+    for I := 0 to Pages.List.Count - 1 do
     begin
-      Page := Pages.GetContent[I];
-      if I < Pages.GetContent.Count - 1 then
+      Page := Pages.List[I];
+      if I < Pages.List.Count - 1 then
       begin
-        NextPage := Pages.GetContent[I + 1];
+        NextPage := Pages.List[I + 1];
       end
       else
       begin
         NextPage := nil;
       end;
-      Split(TitleParts, Page.Title, '>');
+      TFileInfo.SectionToSplitTitle(Page.Section, TitleParts);
       while LastTitleParts.Count < TitleParts.Count do
       begin
         LastTitleParts.Add('');
@@ -112,7 +119,6 @@ begin
 
       for J := 0 to TitleParts.Count - 1 do
       begin
-        TitleParts[J] := Trim(TitleParts[J]);
 
         if J < TitleParts.Count - 1 then
         begin
@@ -120,7 +126,8 @@ begin
           begin
             NormalizeLevel(Output, OpenLevel, J);
 
-            Output.Add(Spaces(4 + (4 * OpenLevel)) + '<li>' + TitleParts[J]);
+            Output.Add(Spaces(4 + (4 * OpenLevel)) + '<li>' + HTMLEscape
+                (TitleParts[J]));
             Output.Add(Spaces(6 + (4 * OpenLevel)) + '<ul>');
             Inc(OpenLevel);
           end;
@@ -129,8 +136,8 @@ begin
         begin
           NormalizeLevel(Output, OpenLevel, J);
 
-          Output.Add(Spaces(4 + (4 * OpenLevel))
-              + '<li>' + '<a href="' + Page.URL + '">' + HTMLEscape
+          Output.Add(Spaces(4 + (4 * OpenLevel)) + '<li>' + '<a href="' +
+              TStringReplacer.HTMLEscapeAll(Page.URL) + '">' + HTMLEscape
               (TitleParts[J]) + '</a>');
           if (NextPage = nil) or (Pos(Page.Title, NextPage.Title) = 0) then
           begin
@@ -139,8 +146,7 @@ begin
         end;
       end;
 
-      // Output.Add('    <li><a href="' + Page.URL + '">' + Page.Title +
-      // '</a></li>');
+      // Output.Add('    <li><a href="' + Page.URL + '">' + Page.Title + '</a></li>');
       LastTitleParts.Clear;
       LastTitleParts.AddStrings(TitleParts);
     end;
@@ -150,10 +156,10 @@ begin
     Output.Add('');
     Output.Add('  <p>');
     Output.Add('    <a href="/' + SiteKey +
-        '">Check for newer versions of this freesite</a>');
+        '-1/">Check for newer versions of this freesite</a>');
     Output.Add('    |');
-    Output.Add('    <a href="/?newbookmark=' + SiteKey + '&amp;desc=' +
-        SiteName +
+    Output.Add('    <a href="/?newbookmark=' + SiteKey + IntToStr(MaxEdition)
+        + '/&amp;desc=' + HTMLEscape(SiteName) +
         '&amp;hasAnActivelink=true">Bookmark this Freesite</a>');
     Output.Add('    |');
     Output.Add('    <a href="about.htm">About</a>');
@@ -164,7 +170,7 @@ begin
     Output.Add('</body>');
     Output.Add('</html>');
 
-    Output.SaveToFile(Filename, TEncoding.UTF8);
+    Output.SaveToFile(Filename, TSiteEncoding.Encoding);
   finally
     FreeAndNil(LastTitleParts);
     FreeAndNil(TitleParts);

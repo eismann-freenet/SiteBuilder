@@ -1,8 +1,8 @@
 ﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 		<PropertyGroup>
-			<ProjectGuid>{FD7838F6-DAAB-44C6-A5DA-311A4EC11AC0}</ProjectGuid>
+			<ProjectGuid>{F6A38D90-6912-4F72-A232-A285EF187CE0}</ProjectGuid>
 			<ProjectVersion>12.0</ProjectVersion>
-			<MainSource>SiteBuilderMain.dpr</MainSource>
+			<MainSource>ThumbnailMaker.dpr</MainSource>
 			<Config Condition="'$(Config)'==''">Debug</Config>
 			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
 		</PropertyGroup>
@@ -20,16 +20,16 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
-			<DCC_UnitSearchPath>lib\SQLite;lib\TPerlRegEx;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-			<DCC_DependencyCheckOutputName>SiteBuilderMain.exe</DCC_DependencyCheckOutputName>
+			<DCC_DependencyCheckOutputName>ThumbnailMaker.exe</DCC_DependencyCheckOutputName>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
+			<DCC_UnitSearchPath>lib\TPerlRegEx;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;$(DCC_UnitAlias)</DCC_UnitAlias>
 			<DCC_Platform>x86</DCC_Platform>
-			<DCC_E>false</DCC_E>
 			<DCC_N>false</DCC_N>
 			<DCC_S>false</DCC_S>
-			<DCC_F>false</DCC_F>
 			<DCC_K>false</DCC_K>
+			<DCC_E>false</DCC_E>
+			<DCC_F>false</DCC_F>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
 			<DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -41,29 +41,12 @@
 			<DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
 		</PropertyGroup>
 		<ItemGroup>
-			<DelphiCompile Include="SiteBuilderMain.dpr">
+			<DelphiCompile Include="ThumbnailMaker.dpr">
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
-			<DCCReference Include="FileInfo.pas"/>
-			<DCCReference Include="SiteBuilder.pas"/>
-			<DCCReference Include="TemplateIndex.pas"/>
-			<DCCReference Include="TemplateContent.pas"/>
-			<DCCReference Include="Tools.pas"/>
-			<DCCReference Include="IndexPage.pas"/>
-			<DCCReference Include="ChangelogEntry.pas"/>
-			<DCCReference Include="TemplateChangelog.pas"/>
-			<DCCReference Include="FileInfoList.pas"/>
-			<DCCReference Include="IndexPageList.pas"/>
+			<DCCReference Include="RegEx.pas"/>
 			<DCCReference Include="Logger.pas"/>
 			<DCCReference Include="Thumbnail.pas"/>
-			<DCCReference Include="KeyCache.pas"/>
-			<DCCReference Include="SystemCall.pas"/>
-			<DCCReference Include="StringReplacer.pas"/>
-			<DCCReference Include="ChangelogEntryList.pas"/>
-			<DCCReference Include="CRC32.pas"/>
-			<DCCReference Include="RegEx.pas"/>
-			<DCCReference Include="UTF8EncodingNoBOM.pas"/>
-			<DCCReference Include="SiteEncoding.pas"/>
 			<BuildConfiguration Include="Basis">
 				<Key>Base</Key>
 			</BuildConfiguration>
@@ -83,7 +66,7 @@
 			<BorlandProject>
 				<Delphi.Personality>
 					<Source>
-						<Source Name="MainSource">SiteBuilderMain.dpr</Source>
+						<Source Name="MainSource">ThumbnailMaker.dpr</Source>
 					</Source>
 					<Parameters>
 						<Parameters Name="UseLauncher">False</Parameters>
