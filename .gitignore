@@ -3,5 +3,6 @@
 /*.identcache
 /*.local
 /*.res
+/__history/
+/key-cache.db3
 /site/
-/thumbnail-infos/
