@@ -17,6 +17,11 @@ input[type=text] {
   width: 89.2em;
   }
 
+code{
+  font-style: italic;
+  font-family: Arial, Tahoma, Verdana, sans-serif;
+  }
+
 dl{
   margin: 0 auto 0.2em auto;
   }
@@ -32,14 +37,30 @@ dd {
 
 table {
   border-collapse: collapse;
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+  border-left: none;
+  border-right: none;
   }
 
 thead {
   font-weight: bold;
   }
 
+thead td {
+  border-top: none;
+  border-bottom: 1px solid black;
+  border-left: none;
+  border-right: none;
+  padding: 5px 5px 5px 5px;
+  }
+
+tbody td {
+  border: none;
+  padding: 2px 5px 2px 5px;
+  }
+
 td {
-  border: 1px solid black;
   vertical-align: top;
   text-align: left;
   }
