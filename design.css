@@ -85,3 +85,55 @@ h3 {
 hr {
   display: none;
   }
+
+.close {
+  background: red;
+  width: 2em;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  position: absolute;
+  top: 0em;
+  right: 0em;
+  text-align: center;
+  }
+
+.close:before {
+  content: "X";
+  }
+
+.open-popup:before {
+  content: "Details...";
+  }
+
+.overlay {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  cursor: default;
+  position: fixed;
+  visibility: hidden;
+  z-index: 0;
+  }
+
+.overlay:target {
+  visibility: visible;
+  }
+
+.popup {
+  position: fixed;
+  visibility: hidden;
+  z-index: 1;
+  background: white;
+  border: 0.15em solid black;
+  padding: 1.5em;
+  display: inline-block;
+  left: 8em;
+  top: 40%;
+  box-shadow: 0.65em 0.65em 0.75em grey;
+  }
+
+.overlay:target+.popup {
+  visibility: visible;
+  }
