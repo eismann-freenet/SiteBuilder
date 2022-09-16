@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -14,126 +14,81 @@
   limitations under the License.
 }
 
-unit ChangelogEntryList;
+unit Changelog;
 
 interface
 
 uses
-  Generics.Collections, ChangelogEntry, Classes;
+  Generics.Collections, ChangelogEntry;
 
 type
-  TChangelogEntryList = class(TPersistent)
+  TChangelog = class(TObjectList<TChangelogEntry>)
 
   strict private
-    FData: TObjectList<TChangelogEntry>;
-    FChangelogFile: string;
     FMaxEdition: Integer;
-    procedure GenerateChangelog;
-
-  published
-    property List: TObjectList<TChangelogEntry>read FData;
-    property MaxEdition: Integer read FMaxEdition;
 
   public
     constructor Create(const ChangelogFile: string);
     destructor Destroy; override;
+    property MaxEdition: Integer read FMaxEdition;
   end;
 
 implementation
 
 uses
-  SysUtils, Tools, StringReplacer, Logger;
+  SysUtils, StringReplacer, CSVFile;
 
-const
-  ColumnEdition = 'Edition';
-  ColumnChanges = 'Changes';
+{ TChangelogEntryList }
 
-  { TChangelogEntryList }
-
-constructor TChangelogEntryList.Create(const ChangelogFile: string);
-begin
-  FData := TObjectList<TChangelogEntry>.Create;
-  FChangelogFile := ChangelogFile;
-  FMaxEdition := 0;
-  GenerateChangelog;
-end;
-
-destructor TChangelogEntryList.Destroy;
-begin
-  FData.Free;
-  inherited Destroy;
-end;
-
-procedure TChangelogEntryList.GenerateChangelog;
+constructor TChangelog.Create(const ChangelogFile: string);
 var
-  CSVLine, FileContent: TStringList;
-  Stream: TStream;
-  Line: string;
-  IndexEdition, IndexChanges, Edition, LineNr: Integer;
+  IndexEdition, IndexChanges, Edition: Integer;
+  CurrentChangelogEntry: TChangelogEntry;
+  Changes: string;
+  CSVFile: TCSVFile;
 begin
-  FData.Clear;
+  FMaxEdition := 0;
+  Clear;
 
-  CSVLine := nil;
-  FileContent := nil;
-  Stream := nil;
-
+  CSVFile := TCSVFile.Create(ChangelogFile, TEncoding.UTF8, ',', '"');
   try
-    CSVLine := TStringList.Create;
-    FileContent := TStringList.Create;
-    Stream := TFileStream.Create(FChangelogFile, fmOpenRead or fmShareDenyNone);
+    IndexEdition := CSVFile.GetColumnIndex('Edition');
+    IndexChanges := CSVFile.GetColumnIndex('Changes');
 
-    IndexEdition := -1;
-    IndexChanges := -1;
-    Edition := 0;
-    LineNr := 0;
-
-    FileContent.LoadFromStream(Stream, TEncoding.UTF8);
-
-    for Line in FileContent do
+    while not CSVFile.IsEndOfFile do
     begin
-      Inc(LineNr);
-      if Line <> '' then
-      begin
-        Split(CSVLine, Line, ',', '"');
+      CSVFile.NextLine;
 
-        if IndexEdition = -1 then
-        begin
-          IndexEdition := ReadColumnIndex(CSVLine, FChangelogFile,
-            ColumnEdition);
-          IndexChanges := ReadColumnIndex(CSVLine, FChangelogFile,
-            ColumnChanges);
-        end
-        else
-        begin
-          if CSVLine.Count < 2 then
-          begin
-            TLogger.LogFatal(Format(
-                'To few columns in line %d in the CSV-File "%s". 2 columns are required.',
-                [LineNr, FChangelogFile]));
-          end;
-          try
-            Edition := StrToInt(CSVLine[IndexEdition]);
-          except
-            TLogger.LogFatal(Format('Invalid edition "%s" in CSV-File "%s".',
-                [CSVLine[IndexEdition], FChangelogFile]));
-          end;
-          if Edition > FMaxEdition then
-          begin
-            FMaxEdition := Edition;
-          end;
-
-          FData.Add(TChangelogEntry.Create(Edition,
-              TStringReplacer.ReplacesQuotes(CSVLine[IndexChanges])));
-        end;
+      try
+        Edition := StrToInt(CSVFile.GetValue(IndexEdition));
+      except
+        raise Exception.CreateFmt('Invalid edition "%s" in CSV-File "%s"!',
+          [CSVFile.GetValue(IndexEdition), ChangelogFile]);
       end;
-    end;
 
-    FData.Reverse;
+      if Edition > FMaxEdition then
+      begin
+        FMaxEdition := Edition;
+      end;
+
+      Changes := CSVFile.GetValue(IndexChanges);
+      Changes := TStringReplacer.ReplaceSpecialChars(Changes);
+      Changes := TStringReplacer.ReplaceNewLine(Changes);
+
+      CurrentChangelogEntry := TChangelogEntry.Create(Edition, Changes);
+
+      Add(CurrentChangelogEntry);
+    end;
+    Reverse;
+
   finally
-    FreeAndNil(Stream);
-    FreeAndNil(FileContent);
-    FreeAndNil(CSVLine);
+    CSVFile.Free;
   end;
+end;
+
+destructor TChangelog.Destroy;
+begin
+  inherited Destroy;
 end;
 
 end.

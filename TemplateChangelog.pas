@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@ unit TemplateChangelog;
 interface
 
 uses
-  ChangelogEntryList;
+  Changelog;
 
 procedure WriteChangelog(const Filename, IndexFilename: string;
-  const Changelog: TChangelogEntryList; const SiteAuthor,
-  SiteDescription: string);
+  const Changelog: TChangelog; const SiteAuthor, SiteDescription,
+  SiteKeywords: string);
 
 implementation
 
@@ -31,8 +31,8 @@ uses
   Classes, SysUtils, ChangelogEntry, HTTPUtil, SiteEncoding;
 
 procedure WriteChangelog(const Filename, IndexFilename: string;
-  const Changelog: TChangelogEntryList; const SiteAuthor,
-  SiteDescription: string);
+  const Changelog: TChangelog; const SiteAuthor, SiteDescription,
+  SiteKeywords: string);
 var
   Output: TStringList;
   ChangelogEntry: TChangelogEntry;
@@ -47,12 +47,12 @@ begin
     Output.Add(
       '  <meta http-equiv="content-type" content="text/html; charset=utf-8" />'
       );
-    Output.Add('  <meta http-equiv="content-language" content="en" />');
-    Output.Add('  <meta name="language" content="en" />');
     Output.Add('  <meta name="author" content="' + HTMLEscape(SiteAuthor)
         + '" />');
     Output.Add('  <meta name="description" content="' + HTMLEscape
         (SiteDescription) + '" />');
+    Output.Add('  <meta name="keywords" content="' + HTMLEscape(SiteKeywords)
+        + '" />');
     Output.Add(
       '  <link rel="stylesheet" type="text/css" media="all" href="design.css" />');
     Output.Add('  <title>Changelog</title>');
@@ -74,7 +74,7 @@ begin
     Output.Add('    </thead>');
     Output.Add('    <tbody>');
 
-    for ChangelogEntry in Changelog.List do
+    for ChangelogEntry in Changelog do
     begin
       Output.Add('      <tr>');
       Output.Add('        <td>' + IntToStr(ChangelogEntry.Edition) + '</td>');

@@ -14,26 +14,29 @@
   limitations under the License.
 }
 
-unit UTF8EncodingNoBOM;
+unit IndexPageComparer;
 
 interface
 
 uses
-  SysUtils;
-
-{ TUTF8EncodingNoBOM }
+  IndexPage, Generics.Defaults;
 
 type
-  TUTF8EncodingNoBOM = class(TUTF8Encoding)
+  TIndexPageComparer = class(TComparer<TIndexPage>)
   public
-    function GetPreamble: TBytes; override;
+    function Compare(const Left, Right: TIndexPage): Integer; override;
   end;
 
 implementation
 
-function TUTF8EncodingNoBOM.GetPreamble: TBytes;
+uses
+  Sort;
+
+{ TIndexPageListComparer }
+
+function TIndexPageComparer.Compare(const Left, Right: TIndexPage): Integer;
 begin
-  SetLength(Result, 0);
+  Result := SortCompare(Left.Title, Right.Title);
 end;
 
 end.

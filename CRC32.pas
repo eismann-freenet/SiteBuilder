@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -39,13 +39,10 @@ function CalcFileCRC32(const Filename: string): string;
 implementation
 
 uses
-  SysUtils, Classes, Windows;
-
-type
-  TInteger8 = Int64;
+  SysUtils, Classes;
 
 const
-  Table: array [0 .. 255] of DWord = ($00000000, $77073096, $EE0E612C,
+  Table: array [0 .. 255] of Cardinal = ($00000000, $77073096, $EE0E612C,
     $990951BA, $076DC419, $706AF48F, $E963A535, $9E6495A3, $0EDB8832,
     $79DCB8A4, $E0D5E91E, $97D2D988, $09B64C2B, $7EB17CBD, $E7B82D07,
     $90BF1D91, $1DB71064, $6AB020F2, $F3B97148, $84BE41DE, $1ADAD47D,
@@ -55,8 +52,7 @@ const
     $A50AB56B, $35B5A8FA, $42B2986C, $DBBBC9D6, $ACBCF940, $32D86CE3,
     $45DF5C75, $DCD60DCF, $ABD13D59, $26D930AC, $51DE003A, $C8D75180,
     $BFD06116, $21B4F4B5, $56B3C423, $CFBA9599, $B8BDA50F, $2802B89E,
-    $5F058808, $C60CD9B2, $B10BE924, $2F6F7C87, $58684C11, $C1611DAB,
-    $B6662D3D,
+    $5F058808, $C60CD9B2, $B10BE924, $2F6F7C87, $58684C11, $C1611DAB, $B6662D3D,
 
     $76DC4190, $01DB7106, $98D220BC, $EFD5102A, $71B18589, $06B6B51F,
     $9FBFE4A5, $E8B8D433, $7807C9A2, $0F00F934, $9609A88E, $E10E9818,
@@ -97,7 +93,7 @@ const
   // Use CalcCRC32 as a procedure so CRCValue can be passed in but
   // also returned.  This allows multiple calls to CalcCRC32 for
   // the "same" CRC-32 calculation.
-procedure CalcCRC32(P: Pointer; ByteCount: DWord; var CRCValue: DWord);
+procedure CalcCRC32(P: Pointer; ByteCount: Cardinal; var CRCValue: Cardinal);
 // The following is a little cryptic (but executes very quickly).
 // The algorithm is as follows:
 // 1.  exclusive-or the input byte with the low-order byte of
@@ -107,7 +103,7 @@ procedure CalcCRC32(P: Pointer; ByteCount: DWord; var CRCValue: DWord);
 // Table[INDEX]
 // 4.  repeat steps 1 through 3 for all bytes
 var
-  I: DWord;
+  I: Cardinal;
   Q: ^Byte;
 begin
   Q := P;
@@ -120,7 +116,7 @@ end;
 
 function CalcFileCRC32(const Filename: string): string;
 var
-  CRCValue: DWord;
+  CRCValue: Cardinal;
   Stream: TMemoryStream;
 begin
   CRCValue := $FFFFFFFF;

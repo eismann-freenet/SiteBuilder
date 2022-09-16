@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ uses
   Classes, Generics.Collections;
 
 type
-  TThumbnail = class(TPersistent)
+  TThumbnail = class
 
   strict private
     FVideoThumbnailCountHorizontal: Integer;
@@ -37,12 +37,11 @@ type
 
     FCommandCache: TDictionary<string, string>;
 
-    function FormatVideoLength(const Length: Integer;
+    class function FormatVideoLength(const Length: Integer;
       const OutputFormat: string): string; overload;
     function ExecuteOutputCached(const Command: string;
       var Output: string): Boolean;
-    procedure CheckCommand(const Command: string);
-    function GetDecimalSeparator: Char;
+    class procedure CheckCommand(const Command: string);
 
   public
     constructor Create(const VideoThumbnailCountHorizontal,
@@ -64,14 +63,17 @@ type
 implementation
 
 uses
-  SysUtils, SystemCall, RegEx, PerlRegEx, Tools, StrUtils, Logger, Windows;
+  SysUtils, SystemCall, RegEx, PerlRegEx, CSVFile, StrUtils, Logger;
+
+{ TThumbnail }
 
 const
   FFMPEGExe = 'ffmpeg.exe';
   ConvertExe = 'convert.exe';
   MontageExe = 'montage.exe';
 
-  ScreenShotCommand = '%s -ss %s -i "%s" -frames:v 1 "%s"';
+  ScreenShotCommand = '%s -ss %s -i "%s" -ss %s -frames:v 1 "%s"';
+  ScreenShotMissingKeyFrameCommand = '%s -i "%s" -ss %s -frames:v 1 "%s"';
   ScreenShotErrorCommand =
     '%s -background white -fill black -font "Arial" -pointsize 20 label:"%s" "%s"';
   ScreenShotSeekFormat = '%.2d:%.2d:%.2d.%.3d';
@@ -85,28 +87,21 @@ const
   VideoLengthPattern = 'Duration: (.*?),';
   VideoLengthFailDetection =
     'Estimating duration from bitrate, this may be inaccurate';
-  VideoErrorDetection = 'Invalid data found when processing input';
   VideoLengthFallbackCommand = '%s -i "%s" -f null -';
   VideoLengthFailPattern = 'Lsize=.*? time=(.*?) ';
   VideoLengthSeparator = ':';
   VideoLengthDecimalSeparator = '.';
-  VideoTBRPattern = '.*, (.*?) tbr, ';
-  VideoTBRK = 'k';
-  VideoTBRThreshold = 20;
-  VideoDamagedDetection = 'Error, header damaged';
-  VideoConvertCommand = '%s -i "%s" "%s"';
 
   ImageThumbnailCommand = '%s "%s" -thumbnail x%s "%s"';
 
   InternalImageExt = '.png';
-  InternalVideoExt = '.avi';
 
-  { TThumbnail }
+  PreSeekDefault = 15000;
 
 procedure TThumbnail.GenerateImageThumbnail(const Filename,
   OutputFilename: string);
 begin
-  SysUtils.DeleteFile(OutputFilename);
+  DeleteFile(OutputFilename);
   ExecuteWait(Format(ImageThumbnailCommand, [FConvert, Filename,
       IntToStr(FImageThumbnailMaxHeight), OutputFilename]));
 end;
@@ -114,10 +109,9 @@ end;
 procedure TThumbnail.GenerateVideoThumbnail(const Filename,
   OutputFilename: string);
 var
-  SubLength, I, ThumbnailCount: Integer;
-  TBR: Double;
-  CurrentPos, CurrentDisplayPos, ScreenShotFilename, EditScreenShotFilename,
-    SourceFilename, AllFiles, Output, TBRRaw: string;
+  CurrentSeekPos, CurrentPos, CurrentDisplayPos, ScreenShotFilename,
+    EditScreenShotFilename, SourceFilename, AllFiles, Output: string;
+  SubLength, I, ThumbnailCount, SeekPos, RenderPos: Integer;
   FilesToDelete: TStringList;
   RegEx: TPerlRegEx;
 begin
@@ -126,7 +120,7 @@ begin
   ThumbnailCount := FVideoThumbnailCountHorizontal *
     FVideoThumbnailCountVertical;
   SubLength := GetVideoLength(Filename) div (ThumbnailCount + 1);
-  SysUtils.DeleteFile(OutputFilename);
+  DeleteFile(OutputFilename);
 
   RegEx := nil;
   FilesToDelete := nil;
@@ -135,44 +129,40 @@ begin
     FilesToDelete := TStringList.Create;
 
     SourceFilename := Filename;
-    if SubLength > 0 then
-    begin
-      TBR := 1;
-      ExecuteOutputCached(Format(VideoLengthCommand, [FFFMPEG, Filename]),
-        Output);
-      TBRRaw := StringReplace(GetRegExResult(RegEx, Output, VideoTBRPattern),
-        VideoLengthDecimalSeparator, GetDecimalSeparator, [rfReplaceAll]);
-      if AnsiContainsText(TBRRaw, VideoTBRK) then
-      begin
-        TBR := 1000;
-        TBRRaw := StringReplace(TBRRaw, VideoTBRK, EmptyStr, [rfReplaceAll])
-      end;
-      TBR := TBR * StrToFloat(TBRRaw);
-      if (TBR < VideoTBRThreshold) or AnsiContainsText(Output,
-        VideoDamagedDetection) then
-      begin
-        TLogger.LogInfo(Format(
-            'Converting video "%s" to avi to get better screenshots.',
-            [Filename]));
-        SourceFilename := GetRandomTempFilename + InternalVideoExt;
-        ExecuteWait(Format(VideoConvertCommand, [FFFMPEG, Filename,
-            SourceFilename]))
-      end;
-    end;
 
     for I := 1 to ThumbnailCount do
     begin
+
+      SeekPos := (SubLength * I) - PreSeekDefault;
+      RenderPos := PreSeekDefault;
+
       ScreenShotFilename := GetRandomTempFilename + InternalImageExt;
       EditScreenShotFilename := GetRandomTempFilename + InternalImageExt;
 
       FilesToDelete.Add(ScreenShotFilename);
       FilesToDelete.Add(EditScreenShotFilename);
 
-      CurrentPos := FormatVideoLength(SubLength * I, ScreenShotSeekFormat);
+      if SeekPos < 0 then
+      begin
+        SeekPos := 0;
+        RenderPos := SubLength * I;
+      end;
+
+      CurrentPos := FormatVideoLength(RenderPos, ScreenShotSeekFormat);
+      CurrentSeekPos := FormatVideoLength(SeekPos, ScreenShotSeekFormat);
       CurrentDisplayPos := FormatVideoLength(SubLength * I, FVideoTimeFormat);
 
-      ExecuteWait(Format(ScreenShotCommand, [FFFMPEG, CurrentPos,
-          SourceFilename, ScreenShotFilename]));
+      if SeekPos = 0 then
+      begin
+        // Don't seek to 00:00:00 to avoid a possible missing key-frame.
+        ExecuteWait(Format(ScreenShotMissingKeyFrameCommand, [FFFMPEG,
+            SourceFilename, CurrentPos, ScreenShotFilename]));
+      end
+      else
+      begin
+        ExecuteWait(Format(ScreenShotCommand, [FFFMPEG, CurrentSeekPos,
+            SourceFilename, CurrentPos, ScreenShotFilename]))
+      end;
 
       ExecuteWait(Format(ScreenShotEditCommand, [FConvert, ScreenShotFilename,
           FOneThumbnailWidth, CurrentDisplayPos, EditScreenShotFilename]));
@@ -184,10 +174,13 @@ begin
         IntToStr(FVideoThumbnailCountHorizontal),
         IntToStr(FVideoThumbnailCountVertical), AllFiles, OutputFilename]));
 
-    DeleteFiles(FilesToDelete);
+    if not DeleteFiles(FilesToDelete) then
+    begin
+      TLogger.LogError('Unable to delete the temporary files!');
+    end;
     if SourceFilename <> Filename then
     begin
-      SysUtils.DeleteFile(SourceFilename);
+      DeleteFile(SourceFilename);
     end;
   finally
     FreeAndnil(FilesToDelete);
@@ -202,53 +195,61 @@ begin
   end;
 end;
 
-function TThumbnail.GetDecimalSeparator: Char;
-var
-  Format: TFormatSettings;
-begin
-  GetLocaleFormatSettings(LOCALE_SYSTEM_DEFAULT, Format);
-  Result := Format.DecimalSeparator;
-end;
-
 function TThumbnail.GetVideoLength(const Filename: string): Integer;
 var
+  Output, LengthRaw: string;
   LengthParts: TStringList;
   RegEx: TPerlRegEx;
-  Output, LengthRaw: string;
+  IsError: Boolean;
 begin
   RegEx := nil;
   LengthParts := nil;
   Output := '';
   try
+    IsError := false;
     RegEx := TPerlRegEx.Create;
     LengthParts := TStringList.Create;
 
-    ExecuteOutputCached(Format(VideoLengthCommand, [FFFMPEG, Filename]),
-      Output);
+    try
+      ExecuteOutputCached(Format(VideoLengthCommand, [FFFMPEG, Filename]),
+        Output);
 
-    if AnsiContainsText(Output, VideoLengthFailDetection) then
-    begin
-      TLogger.LogError(Format(
-          'Unable to determine correct duration for file "%s". Try a slower approach.'
-            , [Filename]));
-      ExecuteOutputCached(Format(VideoLengthFallbackCommand,
-          [FFFMPEG, Filename]), Output);
-      LengthRaw := GetRegExResult(RegEx, Output, VideoLengthFailPattern);
-    end
-    else if AnsiContainsText(Output, VideoErrorDetection) then
+      if AnsiContainsText(Output, VideoLengthFailDetection) then
+      begin
+        TLogger.LogError(Format(
+            'Unable to determine correct duration for file "%s". Try a slower approach.', [Filename]));
+        ExecuteOutputCached(Format(VideoLengthFallbackCommand,
+            [FFFMPEG, Filename]), Output);
+        LengthRaw := GetRegExResult(RegEx, Output, VideoLengthFailPattern);
+      end
+      else
+      begin
+        LengthRaw := GetRegExResult(RegEx, Output, VideoLengthPattern);
+      end;
+
+      TCSVFile.Split(LengthParts, LengthRaw, VideoLengthSeparator, '"');
+      LengthParts[2] := StringReplace(LengthParts[2],
+        VideoLengthDecimalSeparator, GetDecimalSeparator, [rfReplaceAll]);
+    except
+      on EStringListError do
+      begin
+        IsError := true;
+      end;
+      on EInvalidRegEx do
+      begin
+        IsError := true;
+      end;
+    end;
+
+    if IsError then
     begin
       TLogger.LogError(Format('Unable to determine duration for file "%s".',
           [Filename]));
-      LengthRaw := Format(ScreenShotSeekFormat, [0, 0, 0, 0]);
-    end
-    else
-    begin
-      LengthRaw := GetRegExResult(RegEx, Output, VideoLengthPattern);
+      LengthParts.Clear;
+      LengthParts.Add('0');
+      LengthParts.Add('0');
+      LengthParts.Add('0');
     end;
-
-    Split(LengthParts, LengthRaw, VideoLengthSeparator, '"');
-    LengthParts[2] := StringReplace(LengthParts[2],
-      VideoLengthDecimalSeparator, GetDecimalSeparator, [rfReplaceAll]);
 
     Result := (StrToInt(LengthParts[0]) * 3600000) +
       (StrToInt(LengthParts[1]) * 60000) + Trunc
@@ -259,11 +260,11 @@ begin
   end;
 end;
 
-procedure TThumbnail.CheckCommand(const Command: string);
+class procedure TThumbnail.CheckCommand(const Command: string);
 begin
   if not FileExists(Command) then
   begin
-    TLogger.LogFatal(Format('File "%s" does not exist.', [Command]));
+    raise Exception.CreateFmt('File "%s" does not exist.', [Command]);
   end;
 end;
 
@@ -319,7 +320,7 @@ begin
   Result := FormatVideoLength(Length, FVideoTimeFormat);
 end;
 
-function TThumbnail.FormatVideoLength(const Length: Integer;
+class function TThumbnail.FormatVideoLength(const Length: Integer;
   const OutputFormat: string): string;
 var
   Hour, Minute, Second, MSecond: Integer;

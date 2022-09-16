@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,21 +19,13 @@ unit IndexPageList;
 interface
 
 uses
-  IndexPage, Generics.Collections, Classes;
+  IndexPage, Generics.Collections;
 
 type
-  TIndexPageList = class(TPersistent)
-
-  strict private
-    FData: TObjectList<TIndexPage>;
-
-  published
-    property List: TObjectList<TIndexPage>read FData;
+  TIndexPageList = class(TObjectList<TIndexPage>)
 
   public
-    procedure Add(Value: TIndexPage);
     procedure AddFirst(Value: TIndexPage);
-    procedure Sort;
 
     constructor Create;
     destructor Destroy; override;
@@ -42,36 +34,24 @@ type
 implementation
 
 uses
-  Tools, Generics.Defaults;
+  IndexPageComparer;
 
 { TIndexPageList }
 
-procedure TIndexPageList.Add(Value: TIndexPage);
-begin
-  FData.Add(Value);
-end;
-
 procedure TIndexPageList.AddFirst(Value: TIndexPage);
 begin
-  FData.Insert(0, Value);
+  Insert(0, Value);
 end;
 
 constructor TIndexPageList.Create;
 begin
-  FData := TObjectList<TIndexPage>.Create;
+  inherited Create(TIndexPageComparer.Create);
 end;
 
 destructor TIndexPageList.Destroy;
 begin
-  FData.Free;
+  // The object of TIndexPageComparer is automatically destroyed.
   inherited Destroy;
-end;
-
-procedure TIndexPageList.Sort;
-begin
-  FData.Sort(TComparer<TIndexPage>.Construct( function(const L,
-        R: TIndexPage): Integer begin Result := StrCmpLogicalW(PChar(L.Title),
-        PChar(R.Title)); end));
 end;
 
 end.

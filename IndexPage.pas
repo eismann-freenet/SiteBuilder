@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -18,31 +18,27 @@ unit IndexPage;
 
 interface
 
-uses
-  Classes;
-
 type
-  TIndexPage = class(TPersistent)
+  TIndexPage = class
 
   strict private
     FURL: string;
     FTitle: string;
     FSection: string;
 
-  published
-    property URL: string read FURL;
-    property Title: string read FTitle;
-    property Section: string read FSection;
-
   public
     constructor Create(const Section, OutputExtension: string);
     destructor Destroy; override;
+
+    property URL: string read FURL;
+    property Title: string read FTitle;
+    property Section: string read FSection;
   end;
 
 implementation
 
 uses
-  Tools, SysUtils, FileInfo;
+  SysUtils, FileInfo;
 
 { TIndexPage }
 

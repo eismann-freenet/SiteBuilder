@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ unit FileInfo;
 interface
 
 uses
-  Classes, KeyCache, Thumbnail, StringReplacer;
+  SysUtils, Classes, KeyCache, Thumbnail, DuplicateList, Key, BookmarksParser;
 
 type
   TCRC = record
@@ -31,30 +31,32 @@ type
 
   TCRCList = array of TCRC;
 
-  TType = (Movie, Image, Archive, URL, Unknown);
+  TFileType = (Movie, Image, Archive, URL, Unknown);
 
-  TFileInfo = class(TPersistent)
+  TAudioType = (NotSet, None, Original, Music);
+
+  TFileInfo = class
 
   strict private
     FThumbnail: TThumbnail;
     FBigThumbnail: TThumbnail;
     FKeyCache: TKeyCache;
+    FBookmarksParser: TBookmarksParser;
     FDataPath: string;
     FSitePath: string;
     FThumbnailExt: string;
     FThumbnailPath: string;
     FFilePath: string;
-    FFileKey: string;
+    FFileKey: TKey;
     FHasBigThumbnail: Boolean;
     FFileOtherNames: string;
     FDescription: string;
     FAudioTracks: string;
-    FFileName: string;
+    FAudioType: TAudioType;
     FFullFileName: string;
-    FFileType: TType;
+    FFileType: TFileType;
     FFileSize: Integer;
-    FFileLength: string;
-    FFileLengthRaw: Integer;
+    FFileLength: Integer;
     FThumbnailFilename: string;
     FThumbnailWidth: Integer;
     FThumbnailHeight: Integer;
@@ -64,24 +66,44 @@ type
     FSections: TStringList;
     FCRC: string;
     FExtraCRC: TCRCList;
+    FDuplicateList: TDuplicateList;
 
-    procedure detectType;
-    procedure detectSize;
-    procedure updateThumbnails;
-    procedure updateCRC;
-  private
-    procedure loadExtraCRCFile(const Filename: string);
+    procedure DetectSize;
+    procedure UpdateThumbnails;
+    procedure UpdateCRC;
+    function GetIdentifier: string;
+    procedure LoadExtraCRCFile(const Filename: string);
 
-  published
-    property Key: string read FFileKey;
+  public
+    constructor Create(Thumbnail, BigThumbnail: TThumbnail;
+      KeyCache: TKeyCache; BookmarksParser: TBookmarksParser;
+      const DataPath, SitePath, ThumbnailExt, ThumbnailPath, CRCExtension,
+      Sections, FileKey, IsNewKey, IsBigThumbnailRequired, OtherFilenames,
+      Description, AudioTracks, AudioType, HasActiveLink: string;
+      DuplicateList: TDuplicateList; const NewKeyName: string);
+    destructor Destroy; override;
+    class function DetectType(const Filename: string): TFileType;
+    class function FormatFileSize(const Size: Int64): string;
+    class function FormatAudioType(const AudioType: TAudioType): string;
+    class function SectionToTitle(const Section: string): string;
+    class function SectionToURL(const Section, OutputExtension: string): string;
+    class function SectionToPath(const Section: string): string;
+    class procedure SectionToSplitTitle(const Section: string;
+      var List: TStringList);
+    function HasDuplicateList: Boolean;
+    function GetFileLength: string;
+    procedure GetOtherSections(OtherSections: TStringList;
+      const CurrentSection: string);
+
+    property Key: TKey read FFileKey;
     property HasBigThumbnail: Boolean read FHasBigThumbnail;
     property FileOtherNames: string read FFileOtherNames;
     property Description: string read FDescription;
     property AudioTracks: string read FAudioTracks;
-    property Filename: string read FFileName;
-    property FileType: TType read FFileType;
+    property AudioType: TAudioType read FAudioType;
+    property FileType: TFileType read FFileType;
     property FileSize: Integer read FFileSize;
-    property FileLength: string read FFileLength;
+
     property ThumbnailFilename: string read FThumbnailFilename;
     property ThumbnailWidth: Integer read FThumbnailWidth;
     property ThumbnailHeight: Integer read FThumbnailHeight;
@@ -91,195 +113,211 @@ type
     property Sections: TStringList read FSections;
     property CRC: string read FCRC;
     property ExtraCRC: TCRCList read FExtraCRC;
-
-  public
-    constructor Create(Thumbnail, BigThumbnail: TThumbnail;
-      KeyCache: TKeyCache; const DataPath, SitePath, ThumbnailExt,
-      ThumbnailPath, CRCExtension, Section: string; OtherSections: TStringList;
-      const FileKey: string; const IsBigThumbnailRequired: Boolean;
-      const OtherFilenames, Description, AudioTracks: string);
-    destructor Destroy; override;
-    class function FormatFileSize(const Size: Int64): string;
-    class function SectionToTitle(const Section: string): string;
-    class function SectionToURL(const Section, OutputExtension: string): string;
-    class function SectionToPath(const Section: string): string;
-    class procedure SectionToSplitTitle(const Section: string;
-      List: TStringList);
+    property Identifier: string read GetIdentifier;
+    property DuplicateList: TDuplicateList read FDuplicateList;
 
   const
     PathDelimiterSite = '/';
-    SectionDelimiter = '\';
-
+    SectionDelimiter = PathDelim;
   end;
 
 implementation
 
 uses
-  IdURI, SysUtils, StrUtils, JPEG, Tools, Logger, SystemCall, Windows, CRC32;
+  StrUtils, JPEG, CSVFile, Logger, CRC32, TypInfo, StringReplacer, Sort,
+  SystemCall;
+
+{ TFileInfo }
 
 const
   BigThumbnailExt = '.big-thumbnail';
 
-  { TFileInfo }
-
 constructor TFileInfo.Create(Thumbnail, BigThumbnail: TThumbnail;
-  KeyCache: TKeyCache; const DataPath, SitePath, ThumbnailExt, ThumbnailPath,
-  CRCExtension, Section: string; OtherSections: TStringList;
-  const FileKey: string; const IsBigThumbnailRequired: Boolean;
-  const OtherFilenames, Description, AudioTracks: string);
+  KeyCache: TKeyCache; BookmarksParser: TBookmarksParser;
+  const DataPath, SitePath, ThumbnailExt, ThumbnailPath, CRCExtension,
+  Sections, FileKey, IsNewKey, IsBigThumbnailRequired, OtherFilenames,
+  Description, AudioTracks, AudioType, HasActiveLink: string;
+  DuplicateList: TDuplicateList; const NewKeyName: string);
 var
-  KeyParts: TStringList;
-  KeyID, I: Integer;
+  AudioTypeID, KeyID: Integer;
 begin
   FThumbnail := Thumbnail;
   FBigThumbnail := BigThumbnail;
   FKeyCache := KeyCache;
+  FDuplicateList := DuplicateList;
+  FBookmarksParser := BookmarksParser;
+
+  FSections := TStringList.Create;
+  TCSVFile.Split(FSections, Sections, '|');
+
+  if IsNewKey <> '' then
+  begin
+    FSections.Add(NewKeyName);
+  end;
 
   FDataPath := DataPath;
   FSitePath := SitePath;
   FThumbnailExt := ThumbnailExt;
   FThumbnailPath := ThumbnailPath;
-  FFilePath := OtherSections[0];
-  FFileKey := FileKey;
-  FHasBigThumbnail := IsBigThumbnailRequired;
-  FDescription := TStringReplacer.ReplacesQuotes(Description);
 
-  FAudioTracks := StringReplace(AudioTracks, '|', #13, [rfReplaceAll]);
-  FAudioTracks := StringReplace(FAudioTracks, '–', '-', [rfReplaceAll]);
-
-  FFileOtherNames := StringReplace(OtherFilenames, '|', #13, [rfReplaceAll]);
-
-  FSections := TStringList.Create;
-  SetLength(FExtraCRC, 0);
-
-  FSections.AddStrings(OtherSections);
-  for I := FSections.Count - 1 downto 0 do
+  if FSections.Count > 0 then
   begin
-    if FSections[I] = Section then
-    begin
-      FSections.Delete(I);
-    end;
-  end;
-
-  if CompareText(Copy(FFileKey, 1, 3), 'USK') = 0 then
-  begin
-    FFileName := '';
-    FFileType := URL;
+    FFilePath := FSections[0];
   end
   else
   begin
-    KeyParts := TStringList.Create;
-    try
-      Split(KeyParts, FFileKey, '/');
-      FFileName := TIdURI.URLDecode(KeyParts[1]);
-      FFullFileName := FDataPath + PathDelim + SectionToPath(FFilePath)
-        + PathDelim + FFileName;
+    FFilePath := '';
+  end;
 
-      if not FileExists(FFullFileName) then
-      begin
-        TLogger.LogFatal(Format('File "%s" is missing!', [FFullFileName]));
-      end;
+  FFileKey := TKey.Create(FileKey, HasActiveLink <> '');
+  FHasBigThumbnail := IsBigThumbnailRequired <> '';
 
-      loadExtraCRCFile(FFullFileName + CRCExtension);
+  FDescription := TStringReplacer.ReplaceSpecialChars(Description);
+  FDescription := TStringReplacer.ReplaceNewLine(FDescription);
 
-      detectType;
+  SetLength(FExtraCRC, 0);
+  FExtraCRC := nil;
 
-      KeyID := FKeyCache.GetKeyID(FFileKey);
-      if KeyID = -1 then
-      begin
-        detectSize;
-        updateThumbnails;
-        updateCRC;
-        FKeyCache.Add(FFileKey, FFileSize, FThumbnailHeight, FThumbnailWidth,
-          FBigThumbnailHeight, FBigThumbnailWidth, FFileLengthRaw, FCRC);
-      end
-      else
-      begin
-        FKeyCache.SetUsed(KeyID);
+  if FFileKey.KeyType = USK then
+  begin
+    FFileType := URL;
 
-        FFileSize := FKeyCache.GetFilesize(KeyID);
-        if FFileSize = 0 then
-        begin
-          detectSize;
-          FKeyCache.UpdateFilesize(KeyID, FFileSize);
-        end;
-
-        FThumbnailHeight := FKeyCache.GetThumbnailHeight(KeyID);
-        FThumbnailWidth := FKeyCache.GetThumbnailWidth(KeyID);
-        FBigThumbnailHeight := FKeyCache.GetBigThumbnailHeight(KeyID);
-        FBigThumbnailWidth := FKeyCache.GetBigThumbnailWidth(KeyID);
-
-        FFileLengthRaw := FKeyCache.GetVideoLength(KeyID);
-
-        if (FFileType = Movie) and
-          ((FThumbnailHeight = 0) or (FThumbnailWidth = 0) or
-            (FFileLengthRaw = 0) or (IsBigThumbnailRequired and
-              ((FBigThumbnailHeight = 0) or (FBigThumbnailWidth = 0)))) then
-        begin
-          updateThumbnails;
-          FKeyCache.UpdateVideoLength(KeyID, FFileLengthRaw);
-          FKeyCache.UpdateThumbnailHeight(KeyID, FThumbnailHeight);
-          FKeyCache.UpdateThumbnailWidth(KeyID, FThumbnailWidth);
-          FKeyCache.UpdateBigThumbnailHeight(KeyID, FBigThumbnailHeight);
-          FKeyCache.UpdateBigThumbnailWidth(KeyID, FBigThumbnailWidth);
-        end;
-
-        if (FFileType = Image) and
-          ((FThumbnailHeight = 0) or (FThumbnailWidth = 0)) then
-        begin
-          updateThumbnails;
-          FKeyCache.UpdateThumbnailHeight(KeyID, FThumbnailHeight);
-          FKeyCache.UpdateThumbnailWidth(KeyID, FThumbnailWidth);
-        end;
-
-        FCRC := FKeyCache.GetCRC(KeyID);
-        if FCRC = '' then
-        begin
-          updateCRC;
-          FKeyCache.updateCRC(KeyID, FCRC);
-        end;
-      end;
-
-      FFileLength := FThumbnail.FormatVideoLength(FFileLengthRaw);
-
-      FThumbnailFilename := FThumbnailPath + PathDelim +
-        TStringReplacer.Unicode2Latin(SectionToPath(FFilePath))
-        + PathDelim + TStringReplacer.Unicode2Latin(FFileName + FThumbnailExt);
-      FBigThumbnailFilename := FThumbnailPath + PathDelim +
-        TStringReplacer.Unicode2Latin(SectionToPath(FFilePath))
-        + PathDelim + TStringReplacer.Unicode2Latin
-        (FFileName + BigThumbnailExt + FThumbnailExt);
-
-      if (FFileType in [Movie, Image]) and
-        (not FileExists(FSitePath + PathDelim + FThumbnailFilename))
-        then
-      begin
-        TLogger.LogError(Format('Thumbnail "%s" is missing!',
-            [FSitePath + PathDelim + FThumbnailFilename]));
-      end;
-      if (FFileType in [Movie, Image]) and HasBigThumbnail and
-        (not FileExists(FSitePath + PathDelim + FBigThumbnailFilename)) then
-      begin
-        TLogger.LogError(Format('Thumbnail "%s" is missing!',
-            [FSitePath + PathDelim + FBigThumbnailFilename]));
-      end;
-
-      FThumbnailFilename := StringReplace(FThumbnailFilename, PathDelim,
-        PathDelimiterSite, [rfReplaceAll]);
-      FBigThumbnailFilename := StringReplace(FBigThumbnailFilename, PathDelim,
-        PathDelimiterSite, [rfReplaceAll]);
-
-    finally
-      KeyParts.Free;
+    if not FFileKey.HasEdition then
+    begin
+      FFileKey.SetEdition(FBookmarksParser.GetCurrentEdition(FFileKey));
     end;
+  end
+  else
+  begin
+    FFullFileName := FDataPath + PathDelim + SectionToPath(FFilePath)
+      + PathDelim + Key.Filename;
+
+    if not FileExists(FFullFileName) then
+    begin
+      raise Exception.CreateFmt('File "%s" is missing!', [FFullFileName]);
+    end;
+
+    FAudioTracks := TStringReplacer.ReplaceSpecialChars(AudioTracks);
+    FAudioTracks := TStringReplacer.ReplaceNewLine(FAudioTracks);
+
+    AudioTypeID := GetEnumValue(TypeInfo(TAudioType), Trim(AudioType));
+    if AudioTypeID < 0 then
+    begin
+      if AudioType <> '' then
+      begin
+        TLogger.LogError(Format('Invalid AudioType "%s" for key "%s"!',
+            [AudioType, FFileKey.Key]));
+      end;
+      FAudioType := NotSet;
+    end
+    else
+    begin
+      FAudioType := TAudioType(AudioTypeID);
+    end;
+
+    FFileOtherNames := SortArrayAsString(OtherFilenames);
+    FFileOtherNames := TStringReplacer.ReplaceNewLine(FFileOtherNames);
+
+    LoadExtraCRCFile(FFullFileName + CRCExtension);
+
+    FFileType := DetectType(Key.Filename);
+
+    KeyID := FKeyCache.GetKeyIDByKey(FFileKey.Key);
+    if KeyID = -1 then
+    begin
+      DetectSize;
+      UpdateThumbnails;
+      UpdateCRC;
+      FKeyCache.Add(FFileKey.Key, FFileSize, FThumbnailHeight, FThumbnailWidth,
+        FBigThumbnailHeight, FBigThumbnailWidth, FFileLength, FCRC);
+    end
+    else
+    begin
+      FKeyCache.SetUsed(KeyID);
+
+      FFileSize := FKeyCache.GetFilesize(KeyID);
+      if FFileSize = 0 then
+      begin
+        DetectSize;
+        FKeyCache.UpdateFilesize(KeyID, FFileSize);
+      end;
+
+      FThumbnailHeight := FKeyCache.GetThumbnailHeight(KeyID);
+      FThumbnailWidth := FKeyCache.GetThumbnailWidth(KeyID);
+      FBigThumbnailHeight := FKeyCache.GetBigThumbnailHeight(KeyID);
+      FBigThumbnailWidth := FKeyCache.GetBigThumbnailWidth(KeyID);
+
+      FFileLength := FKeyCache.GetVideoLength(KeyID);
+
+      if (FFileType = Movie) and
+        ((FThumbnailHeight = 0) or (FThumbnailWidth = 0) or (FFileLength = 0)
+          or (FHasBigThumbnail and ((FBigThumbnailHeight = 0) or
+              (FBigThumbnailWidth = 0)))) then
+      begin
+        UpdateThumbnails;
+        FKeyCache.UpdateVideoLength(KeyID, FFileLength);
+        FKeyCache.UpdateThumbnailHeight(KeyID, FThumbnailHeight);
+        FKeyCache.UpdateThumbnailWidth(KeyID, FThumbnailWidth);
+        FKeyCache.UpdateBigThumbnailHeight(KeyID, FBigThumbnailHeight);
+        FKeyCache.UpdateBigThumbnailWidth(KeyID, FBigThumbnailWidth);
+      end;
+
+      if (FFileType = Image) and
+        ((FThumbnailHeight = 0) or (FThumbnailWidth = 0)) then
+      begin
+        UpdateThumbnails;
+        FKeyCache.UpdateThumbnailHeight(KeyID, FThumbnailHeight);
+        FKeyCache.UpdateThumbnailWidth(KeyID, FThumbnailWidth);
+      end;
+
+      FCRC := FKeyCache.GetCRC(KeyID);
+      if FCRC = '' then
+      begin
+        UpdateCRC;
+        FKeyCache.UpdateCRC(KeyID, FCRC);
+      end;
+    end;
+
+    FThumbnailFilename := FThumbnailPath + PathDelim +
+      TStringReplacer.Unicode2Latin(SectionToPath(FFilePath))
+      + PathDelim + TStringReplacer.Unicode2Latin
+      (Key.Filename + FThumbnailExt);
+    FBigThumbnailFilename := FThumbnailPath + PathDelim +
+      TStringReplacer.Unicode2Latin(SectionToPath(FFilePath))
+      + PathDelim + TStringReplacer.Unicode2Latin
+      (Key.Filename + BigThumbnailExt + FThumbnailExt);
+
+    if (FFileType in [Movie, Image]) and
+      (not FileExists(FSitePath + PathDelim + FThumbnailFilename)) then
+    begin
+      TLogger.LogError(Format('Thumbnail "%s" is missing!',
+          [FSitePath + PathDelim + FThumbnailFilename]));
+    end;
+    if (FFileType in [Movie, Image]) and HasBigThumbnail and
+      (not FileExists(FSitePath + PathDelim + FBigThumbnailFilename)) then
+    begin
+      TLogger.LogError(Format('Thumbnail "%s" is missing!',
+          [FSitePath + PathDelim + FBigThumbnailFilename]));
+    end;
+
+    FThumbnailFilename := StringReplace(FThumbnailFilename, PathDelim,
+      PathDelimiterSite, [rfReplaceAll]);
+    FBigThumbnailFilename := StringReplace(FBigThumbnailFilename, PathDelim,
+      PathDelimiterSite, [rfReplaceAll]);
   end;
 end;
 
 destructor TFileInfo.Destroy;
 begin
   FSections.Free;
+  FFileKey.Free;
   SetLength(FExtraCRC, 0);
   inherited Destroy;
+end;
+
+class function TFileInfo.FormatAudioType(const AudioType: TAudioType): string;
+begin
+  Result := GetEnumName(TypeInfo(TAudioType), Integer(AudioType));
 end;
 
 class function TFileInfo.FormatFileSize(const Size: Int64): string;
@@ -308,18 +346,51 @@ begin
   end;
 end;
 
+function TFileInfo.GetFileLength: string;
+begin
+  Result := FThumbnail.FormatVideoLength(FFileLength);
+end;
+
+function TFileInfo.GetIdentifier: string;
+begin
+  Result := FCRC + '-' + IntToStr(FFileSize);
+end;
+
+procedure TFileInfo.GetOtherSections(OtherSections: TStringList;
+  const CurrentSection: string);
+var
+  I: Integer;
+begin
+  OtherSections.Clear;
+  OtherSections.AddStrings(FSections);
+
+  for I := OtherSections.Count - 1 downto 0 do
+  begin
+    if OtherSections[I] = CurrentSection then
+    begin
+      OtherSections.Delete(I);
+    end;
+  end;
+
+end;
+
+function TFileInfo.HasDuplicateList: Boolean;
+begin
+  Result := FDuplicateList <> nil;
+end;
+
 class function TFileInfo.SectionToPath(const Section: string): string;
 begin
   Result := StringReplace(Section, SectionDelimiter, PathDelim, [rfReplaceAll]);
 end;
 
 class procedure TFileInfo.SectionToSplitTitle(const Section: string;
-  List: TStringList);
+  var List: TStringList);
 begin
-  Split(List, Section, SectionDelimiter);
+  TCSVFile.Split(List, Section, SectionDelimiter);
 end;
 
-procedure TFileInfo.loadExtraCRCFile(const Filename: string);
+procedure TFileInfo.LoadExtraCRCFile(const Filename: string);
 var
   FileContent, Parts: TStringList;
   Stream: TStream;
@@ -327,7 +398,7 @@ var
 begin
   if FileExists(Filename) then
   begin
-    TLogger.LogInfo(Format('Load extra CRC-Infos from file "%s"', [Filename]));
+    TLogger.LogInfo(Format('Read CRC-Infos from "%s"', [Filename]));
 
     Parts := nil;
     Stream := nil;
@@ -340,12 +411,16 @@ begin
       FileContent.LoadFromStream(Stream, TEncoding.UTF8);
       for Line in FileContent do
       begin
-        Split(Parts, Line, ',');
+        TCSVFile.Split(Parts, Line, ',');
         SetLength(FExtraCRC, Length(FExtraCRC) + 1);
         FExtraCRC[ High(FExtraCRC)].Filename := Parts[0];
         FExtraCRC[ High(FExtraCRC)].FileSize := StrToInt(Parts[1]);
         FExtraCRC[ High(FExtraCRC)].CRC := Parts[2];
         FExtraCRC[ High(FExtraCRC)].Path := Parts[3];
+      end;
+      if High(FExtraCRC) = -1 then
+      begin
+        raise Exception.CreateFmt('No content found in file "%s"!', [Filename]);
       end;
     finally
       FreeAndNil(Stream);
@@ -367,7 +442,7 @@ begin
       SectionDelimiter, '.', [rfReplaceAll])) + OutputExtension;
 end;
 
-procedure TFileInfo.detectSize;
+procedure TFileInfo.DetectSize;
 var
   DataFile: file of Byte;
 begin
@@ -386,66 +461,60 @@ begin
   end;
 end;
 
-procedure TFileInfo.detectType;
+class function TFileInfo.DetectType(const Filename: string): TFileType;
 const
-  MovieExt: array [1 .. 22] of string = ('3g2', '3gp', 'asf', 'avi', 'avi',
+  MovieExt: array [1 .. 23] of string = ('3g2', '3gp', 'asf', 'avi', 'avi',
     'divx', 'flac', 'f4v', 'flv', 'm1v', 'm4v', 'mkv', 'mov', 'mp4', 'mpe',
-    'mpeg', 'mpg', 'ogm', 'rm', 'rmvb', 'swf', 'wmv');
+    'mpeg', 'mpg', 'mts', 'ogm', 'rm', 'rmvb', 'swf', 'wmv');
   ImageExt: array [1 .. 5] of string = ('bmp', 'gif', 'jpg', 'jpeg', 'png');
   ArchiveExt: array [1 .. 2] of string = ('7z', 'zip');
 var
   Extension: string;
 begin
-  Extension := ExtractFileExt(FFileName);
+  Extension := ExtractFileExt(Filename);
   Delete(Extension, 1, 1);
 
   if MatchText(Extension, MovieExt) then
   begin
-    FFileType := Movie;
+    Result := Movie;
   end
   else if MatchText(Extension, ImageExt) then
   begin
-    FFileType := Image;
+    Result := Image;
   end
   else if MatchText(Extension, ArchiveExt) then
   begin
-    FFileType := Archive;
+    Result := Archive;
   end
   else
   begin
-    FFileType := Unknown;
+    Result := Unknown;
   end;
 end;
 
-procedure TFileInfo.updateCRC;
+procedure TFileInfo.UpdateCRC;
 begin
   TLogger.LogInfo(Format('Update CRC for file "%s"', [FFullFileName]));
   FCRC := CalcFileCRC32(FFullFileName);
 end;
 
-procedure TFileInfo.updateThumbnails;
+procedure TFileInfo.UpdateThumbnails;
 var
-  SubPath, FullThumbnailFilename, FullBigThumbnailFilename,
-    FullThumbnailPath: string;
+  FullThumbnailFilename, FullBigThumbnailFilename, FullThumbnailPath: string;
   ThumbnailImage: TJPEGImage;
 begin
   if (FFileType = Movie) or (FFileType = Image) then
   begin
-    SubPath := SectionToPath(FFilePath);
-
     FullThumbnailPath := FSitePath + PathDelim + FThumbnailPath + PathDelim +
-      TStringReplacer.Unicode2Latin(SubPath);
+      TStringReplacer.Unicode2Latin(SectionToPath(FFilePath));
 
     FullThumbnailFilename := FullThumbnailPath + PathDelim +
-      TStringReplacer.Unicode2Latin(FFileName + FThumbnailExt);
+      TStringReplacer.Unicode2Latin(Key.Filename + FThumbnailExt);
     FullBigThumbnailFilename := FullThumbnailPath + PathDelim +
       TStringReplacer.Unicode2Latin
-      (FFileName + BigThumbnailExt + FThumbnailExt);
+      (Key.Filename + BigThumbnailExt + FThumbnailExt);
 
-    if not DirectoryExists(FullThumbnailPath) then
-    begin
-      ForceDirectories(FullThumbnailPath);
-    end;
+    ForceDirectories(FullThumbnailPath);
   end;
 
   if FFileType = Movie then
@@ -458,7 +527,7 @@ begin
         FullBigThumbnailFilename);
     end;
 
-    FFileLengthRaw := FThumbnail.GetVideoLength(FFullFileName);
+    FFileLength := FThumbnail.GetVideoLength(FFullFileName);
   end;
 
   if FFileType = Image then

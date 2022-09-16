@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,81 +19,67 @@ unit FileInfoList;
 interface
 
 uses
-  FileInfo, Generics.Collections, ComCtrls, Classes;
+  FileInfo, Generics.Collections, Classes;
 
 type
   TCRCType = (CRC, SFV);
 
-  TFileInfoList = class(TPersistent)
+  TFileInfoList = class(TObjectList<TFileInfo>)
 
   strict private
-    FData: TObjectList<TFileInfo>;
-    procedure AddCRCLine(List: TStringList; const Filename, Path, CRC: string;
-      const Size: Integer);
-    procedure AddSFVLine(List: TStringList; const Filename, Path, CRC: string);
-
-  published
-    property List: TObjectList<TFileInfo>read FData;
+    class procedure AddCRCLine(List: TStringList;
+      const Filename, Path, CRC: string; const Size: Integer);
+    class procedure AddSFVLine(List: TStringList;
+      const Filename, Path, CRC: string);
 
   public
-    procedure Add(Value: TFileInfo);
-    procedure Sort;
     function FileSizeSum: Int64;
-
-    constructor Create;
-    destructor Destroy; override;
     procedure GenerateCRCFile(const Filename: string; const CRCType: TCRCType);
+
+    constructor Create(const AOwnsObjects: Boolean = True);
+    destructor Destroy; override;
   end;
 
 implementation
 
 uses
-  Tools, Generics.Defaults, SysUtils, SiteEncoding;
+  Generics.Defaults, SysUtils, SiteEncoding, Sort, Key, FileInfoComparer;
 
 { TFileInfoList }
 
-procedure TFileInfoList.Add(Value: TFileInfo);
-begin
-  FData.Add(Value);
-end;
-
-procedure TFileInfoList.AddCRCLine(List: TStringList;
+class procedure TFileInfoList.AddCRCLine(List: TStringList;
   const Filename, Path, CRC: string; const Size: Integer);
-var
-  Line: string;
 begin
   if Filename <> '' then
   begin
     if Pos(',', Filename) > 0 then
     begin
-      Line := '"' + Filename + '"';
+      List.Add(Format('"%s",%d,%s,%s,', [Filename, Size, CRC, Path]));
     end
     else
     begin
-      Line := Filename;
+      List.Add(Format('%s,%d,%s,%s,', [Filename, Size, CRC, Path]));
     end;
-    Line := Line + ',' + IntToStr(Size) + ',' + CRC + ',' + Path + ',';
-    List.Add(Line);
   end;
 end;
 
-procedure TFileInfoList.AddSFVLine(List: TStringList;
+class procedure TFileInfoList.AddSFVLine(List: TStringList;
   const Filename, Path, CRC: string);
 begin
   if Filename <> '' then
   begin
-    List.Add(Path + Filename + ' ' + CRC);
+    List.Add(Format('%s%s %s', [Path, Filename, CRC]));
   end;
 end;
 
-constructor TFileInfoList.Create;
+constructor TFileInfoList.Create(const AOwnsObjects: Boolean);
 begin
-  FData := TObjectList<TFileInfo>.Create;
+  inherited Create(TFileInfoComparer.Create, AOwnsObjects);
 end;
 
 destructor TFileInfoList.Destroy;
 begin
-  FData.Free;
+  // The object of TFileInfoComparer is automatically destroyed.
   inherited Destroy;
 end;
 
@@ -102,7 +88,7 @@ var
   FileInfo: TFileInfo;
 begin
   Result := 0;
-  for FileInfo in FData do
+  for FileInfo in Self do
   begin
     Result := Result + FileInfo.FileSize;
   end;
@@ -113,27 +99,22 @@ procedure TFileInfoList.GenerateCRCFile(const Filename: string;
 var
   Output: TStringList;
   FileInfo: TFileInfo;
-  Path: string;
   CRCEntry: TCRC;
 begin
-  Path := ExtractFilePath(Filename);
-  if not DirectoryExists(Path) then
-  begin
-    ForceDirectories(Path);
-  end;
+  ForceDirectories(ExtractFilePath(Filename));
 
   Output := TStringList.Create;
   try
-    for FileInfo in FData do
+    for FileInfo in Self do
     begin
-      if CRCType = CRC then
+      if (CRCType = CRC) and (FileInfo.Key.KeyType = CHK) then
       begin
-        AddCRCLine(Output, FileInfo.Filename, PathDelim, FileInfo.CRC,
+        AddCRCLine(Output, FileInfo.Key.Filename, PathDelim, FileInfo.CRC,
           FileInfo.FileSize);
       end
-      else if CRCType = SFV then
+      else if (CRCType = SFV) and (FileInfo.Key.KeyType = CHK) then
       begin
-        AddSFVLine(Output, FileInfo.Filename, '', FileInfo.CRC);
+        AddSFVLine(Output, FileInfo.Key.Filename, '', FileInfo.CRC);
       end;
       if (Length(FileInfo.ExtraCRC) > 0) then
       begin
@@ -156,13 +137,6 @@ begin
   finally
     Output.Free;
   end;
-end;
-
-procedure TFileInfoList.Sort;
-begin
-  FData.Sort(TComparer<TFileInfo>.Construct( function(const L,
-        R: TFileInfo): Integer begin Result := StrCmpLogicalW
-        (PChar(L.Filename), PChar(R.Filename)); end));
 end;
 
 end.

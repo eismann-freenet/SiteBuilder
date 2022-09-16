@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -18,33 +18,42 @@ program ThumbnailMaker;
 {$APPTYPE CONSOLE}
 
 uses
-  RegEx in 'RegEx.pas',
-  SysUtils,
+  CSVFile in 'CSVFile.pas',
   Logger in 'Logger.pas',
-  Thumbnail in 'Thumbnail.pas';
+  RegEx in 'RegEx.pas',
+  Thumbnail in 'Thumbnail.pas',
+  SysUtils;
 {$R *.res}
 
 var
   Thumbnail: TThumbnail;
   ExePath, VideoFile: string;
+  I: Integer;
 
 begin
   try
     ExePath := ExtractFilePath(ParamStr(0));
-    VideoFile := ParamStr(1);
-    if VideoFile = '' then
+
+    if ParamCount = 0 then
     begin
-      TLogger.LogFatal('Param 1 have to be a filename of a video!');
+      raise Exception.Create('Params 1..n have to be a filename of a video!');
     end;
+
     Thumbnail := TThumbnail.Create(4, 4, 1024, '%.2d:%.2d:%.2d', 186,
-      ExePath + 'programs\ffmpeg\bin\', ExePath + 'programs\ImageMagick\');
+      ExePath + 'programs\FFmpeg\bin\', ExePath + 'programs\ImageMagick\');
     try
-      TLogger.LogInfo(Format('Update thumbnails for file "%s"', [VideoFile]));
-      Thumbnail.GenerateVideoThumbnail(VideoFile, VideoFile + '.jpg');
+      for I := 1 to ParamCount do
+      begin
+        VideoFile := ParamStr(I);
+        TLogger.LogInfo(Format('Update thumbnails for file "%s"', [VideoFile]));
+        Thumbnail.GenerateVideoThumbnail(VideoFile, VideoFile + '.jpg');
+      end;
     finally
       Thumbnail.Free;
     end;
   except
+    on E: Exception do
+      TLogger.LogFatal(E.Message);
   end;
   writeln('Press ENTER to exit...');
   readln;

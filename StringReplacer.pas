@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,53 +19,59 @@ unit StringReplacer;
 interface
 
 uses
-  Generics.Collections, PerlRegEx;
+  Generics.Collections, PerlRegEx, Key;
 
 type
   TStringReplacer = class
 
   strict private
-    class var FQuotes: TDictionary<Char, string>;
-    class var FCyrillicAlphabet: TDictionary<Char, string>;
-    class var FGermanAlphabet: TDictionary<Char, string>;
-    class var FSpanishAlphabet: TDictionary<Char, string>;
+    class var FSpecialChars: TDictionary<string, string>;
+    class var FCyrillicAlphabet: TDictionary<string, string>;
+    class var FGermanAlphabet: TDictionary<string, string>;
+    class var FSpanishAlphabet: TDictionary<string, string>;
+    class var FAlbanianAlphabet: TDictionary<string, string>;
+    class var FPortugueseAlphabet: TDictionary<string, string>;
+    class var FSpecialCharsURL: TDictionary<string, string>;
     class var FRegEx: TPerlRegEx;
-
-    class function ReplaceWithDictionary(const Text: string;
-      Dictionary: TDictionary<Char, string>): string;
 
   protected
     class constructor Create;
     class destructor Destroy;
 
   public
-    class function HTMLEscapeAll(const Text: string): string;
+    class function ReplaceWithDictionary(const Text: string;
+      Dictionary: TDictionary<string, string>): string;
     class function NL2BR(const Value: string): string;
     class function Unicode2Latin(const Value: string): string;
-    class function ReplacesQuotes(const Value: string): string;
+    class function ReplaceSpecialChars(const Value: string): string;
+    class function ReplaceNewLine(const Value: string): string;
+    class function URLDecode(const Value: string): string;
+    class function URLEncode(const Value: string): string;
+    class function FormatKey(Value: TKey; const Description: string): string;
   end;
 
 implementation
 
-{ TStringReplacer }
-
 uses
-  HTTPUtil, SysUtils, RegEx;
+  HTTPUtil, SysUtils;
+
+{ TStringReplacer }
 
 class constructor TStringReplacer.Create;
 begin
   FRegEx := TPerlRegEx.Create;
 
-  FQuotes := TDictionary<Char, string>.Create;
-  FQuotes.Add('„', '"');
-  FQuotes.Add('“', '"');
-  FQuotes.Add('”', '"');
+  FSpecialChars := TDictionary<string, string>.Create;
+  FSpecialChars.Add('„', '"');
+  FSpecialChars.Add('“', '"');
+  FSpecialChars.Add('”', '"');
+  FSpecialChars.Add('–', '-'); // dash
 
   // Replacement rules are required as Freenet can't handle
   // files with non-latin characters in the filename.
 
   // http://en.wikipedia.org/wiki/Romanization_of_Russian#Transliteration_table
-  FCyrillicAlphabet := TDictionary<Char, string>.Create;
+  FCyrillicAlphabet := TDictionary<string, string>.Create;
   FCyrillicAlphabet.Add('А', 'A');
   FCyrillicAlphabet.Add('а', 'a');
   FCyrillicAlphabet.Add('Б', 'B');
@@ -129,12 +135,14 @@ begin
   FCyrillicAlphabet.Add('Э', 'E');
   FCyrillicAlphabet.Add('э', 'e');
   FCyrillicAlphabet.Add('Ю', 'Yu');
+  FCyrillicAlphabet.Add('Û', 'Yu');
   FCyrillicAlphabet.Add('ю', 'yu');
+  FCyrillicAlphabet.Add('û', 'yu');
   FCyrillicAlphabet.Add('Я', 'Ya');
   FCyrillicAlphabet.Add('я', 'ya');
 
   // http://en.wikipedia.org/wiki/German_language#Present
-  FGermanAlphabet := TDictionary<Char, string>.Create;
+  FGermanAlphabet := TDictionary<string, string>.Create;
   FGermanAlphabet.Add('ß', 'ss');
   FGermanAlphabet.Add('ö', 'oe');
   FGermanAlphabet.Add('Ö', 'Oe');
@@ -145,53 +153,167 @@ begin
 
   // http://en.wikipedia.org/wiki/Spanish_orthography#The_alphabet_in_Spanish
   // http://en.wikipedia.org/wiki/Ñ#History
-  FSpanishAlphabet := TDictionary<Char, string>.Create;
+  FSpanishAlphabet := TDictionary<string, string>.Create;
   FSpanishAlphabet.Add('Ñ', 'NN');
   FSpanishAlphabet.Add('ñ', 'nn');
+
+  // https://en.wikipedia.org/wiki/Albanian_alphabet
+  FAlbanianAlphabet := TDictionary<string, string>.Create;
+  FAlbanianAlphabet.Add('Ë', 'E');
+  FAlbanianAlphabet.Add('ë', 'e');
+
+  // https://en.wikipedia.org/wiki/Portuguese_alphabet#Diacritics
+  FPortugueseAlphabet := TDictionary<string, string>.Create;
+  FPortugueseAlphabet.Add('Ç', 'c');
+  FPortugueseAlphabet.Add('ç', 'c');
+  FPortugueseAlphabet.Add('Á', 'A');
+  FPortugueseAlphabet.Add('á', 'a');
+  FPortugueseAlphabet.Add('É', 'E');
+  FPortugueseAlphabet.Add('é', 'e');
+  FPortugueseAlphabet.Add('Í', 'I');
+  FPortugueseAlphabet.Add('í', 'i');
+  FPortugueseAlphabet.Add('Ó', 'O');
+  FPortugueseAlphabet.Add('ó', 'o');
+  FPortugueseAlphabet.Add('Ú', 'U');
+  FPortugueseAlphabet.Add('ú', 'u');
+  FPortugueseAlphabet.Add('Â', 'A');
+  FPortugueseAlphabet.Add('â', 'a');
+  FPortugueseAlphabet.Add('Ê', 'E');
+  FPortugueseAlphabet.Add('ê', 'e');
+  FPortugueseAlphabet.Add('Ô', 'O');
+  FPortugueseAlphabet.Add('ô', 'o');
+  FPortugueseAlphabet.Add('Ã', 'A');
+  FPortugueseAlphabet.Add('ã', 'a');
+  FPortugueseAlphabet.Add('Õ', 'O');
+  FPortugueseAlphabet.Add('õ', 'o');
+  FPortugueseAlphabet.Add('À', 'A');
+  FPortugueseAlphabet.Add('à', 'a');
+
+  FSpecialCharsURL := TDictionary<string, string>.Create;
+  FSpecialCharsURL.Add('°', 'deg');
 end;
 
 class destructor TStringReplacer.Destroy;
 begin
   FRegEx.Free;
-  FQuotes.Free;
+  FSpecialChars.Free;
   FCyrillicAlphabet.Free;
   FGermanAlphabet.Free;
   FSpanishAlphabet.Free;
+  FAlbanianAlphabet.Free;
+  FPortugueseAlphabet.Free;
+  FSpecialCharsURL.Free;
 end;
 
-class function TStringReplacer.HTMLEscapeAll(const Text: string): string;
+class function TStringReplacer.FormatKey(Value: TKey;
+  const Description: string): string;
 begin
-  Result := HTMLEscape(Text);
-  Result := RegExReplace(FRegEx, Result, '(?<!&)#', '%23');
+  Result := '<a href="/' + Value.Key + '">';
+  if Value.HasActiveLink then
+  begin
+    Result := Result + '<img src="/' + Value.Key + 'activelink.png" alt="' +
+      HTMLEscape(Description) + '" width="108" height="36" />';
+  end
+  else
+  begin
+    Result := Result + HTMLEscape(Description);
+  end;
+  Result := Result + '</a>';
 end;
 
 class function TStringReplacer.NL2BR(const Value: string): string;
 const
   BR = '<br />';
 begin
-  Result := StringReplace(Value, #13 + #10, BR, [rfReplaceAll]);
-  Result := StringReplace(Result, #13, BR, [rfReplaceAll]);  Result := StringReplace(Result, #10, BR, [rfReplaceAll]);end;
+  Result := StringReplace(Value, #13, BR, [rfReplaceAll]);
+end;
 class function TStringReplacer.Unicode2Latin(const Value: string): string;
 begin
   Result := ReplaceWithDictionary(Value, FCyrillicAlphabet);
   Result := ReplaceWithDictionary(Result, FGermanAlphabet);
   Result := ReplaceWithDictionary(Result, FSpanishAlphabet);
+  Result := ReplaceWithDictionary(Result, FAlbanianAlphabet);
+  Result := ReplaceWithDictionary(Result, FPortugueseAlphabet);
+  Result := ReplaceWithDictionary(Result, FSpecialCharsURL);
 end;
 
-class function TStringReplacer.ReplacesQuotes(const Value: string): string;
+class function TStringReplacer.ReplaceSpecialChars(const Value: string): string;
 begin
-  Result := ReplaceWithDictionary(Value, FQuotes);
+  Result := ReplaceWithDictionary(Value, FSpecialChars);
+end;
+
+class function TStringReplacer.ReplaceNewLine(const Value: string): string;
+begin
+  Result := StringReplace(Value, #13 + #10, #13, [rfReplaceAll]);
+  Result := StringReplace(Result, #10, #13, [rfReplaceAll]);
+  Result := StringReplace(Result, '|', #13, [rfReplaceAll]);
 end;
 
 class function TStringReplacer.ReplaceWithDictionary(const Text: string;
-  Dictionary: TDictionary<Char, string>): string;
+  Dictionary: TDictionary<string, string>): string;
 var
-  Letter: Char;
+  Letter: string;
 begin
   Result := Text;
   for Letter in Dictionary.Keys do
   begin
     Result := StringReplace(Result, Letter, Dictionary[Letter], [rfReplaceAll]);
+  end;
+end;
+
+// Original-Source:
+// https://raw.githubusercontent.com/project-jedi/jvcl/master/tests/Jans/Source/jvStrings.pas
+class function TStringReplacer.URLDecode(const Value: string): string;
+var
+  I: Integer;
+  Ch: Char;
+begin
+  Result := '';
+  I := 1;
+  while I <= length(Value) do
+  begin
+    Ch := Value[I];
+    case Ch of
+      '%':
+        begin
+          Result := Result + Chr(StrToInt('$' + Value[I + 1] + Value[I + 2]));
+          Inc(I, 2);
+        end;
+    else
+      begin
+        Result := Result + Ch;
+      end;
+    end;
+    Inc(I);
+  end;
+end;
+
+// Original-Source:
+// https://raw.githubusercontent.com/project-jedi/jvcl/master/tests/Jans/Source/jvStrings.pas
+class function TStringReplacer.URLEncode(const Value: string): string;
+// Original:
+// ValidURLChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$-_@.&+-!*"''(),;/#?:';
+// &+'()#!@, is encoded in a Freenet-Key -> Removed from this list.
+const
+  ValidURLChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$-_.-*";/?:';
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 1 to length(Value) do
+  begin
+    if Pos(UpperCase(Value[I]), ValidURLChars) > 0 then
+    begin
+      Result := Result + Value[I]
+    end
+    else
+    begin
+      // TODO:
+      // Works only for latin-characters. Every other character
+      // is replaced by a transliteration to a latin-character.
+      Result := Result + '%';
+      Result := Result + AnsiLowerCase(IntToHex(Byte(Value[I]), 2));
+    end;
   end;
 end;
 

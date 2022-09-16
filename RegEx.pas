@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,57 +19,40 @@ unit RegEx;
 interface
 
 uses
-  PerlRegEx;
+  PerlRegEx, SysUtils;
 
-function GetRegExResult(var RegexObj: TPerlRegEx; const Subject, RegEx: string)
+type
+  EInvalidRegEx = class(Exception)
+  end;
+
+function GetRegExResult(RegexObj: TPerlRegEx; const Subject, RegEx: string)
   : string;
-function RegExReplace(var RegexObj: TPerlRegEx; const Subject, RegEx,
-  Replace: string): string;
 
 implementation
 
-uses
-  SysUtils, Logger;
-
-function GetRegExResult(var RegexObj: TPerlRegEx; const Subject, RegEx: string)
+function GetRegExResult(RegexObj: TPerlRegEx; const Subject, RegEx: string)
   : string;
 var
   i: Integer;
 begin
   Result := '';
   RegexObj.Subject := UTF8Encode(Subject);
-
   RegexObj.RegEx := UTF8Encode(RegEx);
-  if RegexObj.Match then
-  begin
+
+  try
+    RegexObj.Match;
     RegexObj.StoreGroups;
     for i := 1 to RegexObj.GroupCount do
     begin
-      if length(RegexObj.Groups[i]) > 0 then
+      if Length(RegexObj.Groups[i]) > 0 then
       begin
         Result := UTF8ToString(RegexObj.Groups[i]);
       end;
     end;
-  end
-  else
-  begin
-    TLogger.LogFatal(Format('No match for regex "%s" and subject "%s"!',
-        [RegEx, Subject]));
-  end;
-end;
-
-function RegExReplace(var RegexObj: TPerlRegEx; const Subject, RegEx,
-  Replace: string): string;
-begin
-  Result := Subject;
-  RegexObj.Subject := UTF8Encode(Subject);
-  RegexObj.RegEx := UTF8Encode(RegEx);
-  RegexObj.Replacement := UTF8Encode(Replace);
-
-  if RegexObj.Match then
-  begin
-    RegexObj.ReplaceAll;
-    Result := UTF8ToString(RegexObj.Subject);
+  except
+    on EAssertionFailed do
+      raise EInvalidRegEx.CreateFmt
+        ('No match for regex "%s" and subject "%s"!', [RegEx, Subject]);
   end;
 end;
 

@@ -14,26 +14,30 @@
   limitations under the License.
 }
 
-unit UTF8EncodingNoBOM;
+unit DuplicateEntryComparer;
 
 interface
 
 uses
-  SysUtils;
-
-{ TUTF8EncodingNoBOM }
+  DuplicateEntry, Generics.Defaults;
 
 type
-  TUTF8EncodingNoBOM = class(TUTF8Encoding)
+  TDuplicateEntryComparer = class(TComparer<TDuplicateEntry>)
   public
-    function GetPreamble: TBytes; override;
+    function Compare(const Left, Right: TDuplicateEntry): Integer; override;
   end;
 
 implementation
 
-function TUTF8EncodingNoBOM.GetPreamble: TBytes;
+uses
+  Sort;
+
+{ TDuplicateEntryComparer }
+
+function TDuplicateEntryComparer.Compare(const Left, Right: TDuplicateEntry)
+  : Integer;
 begin
-  SetLength(Result, 0);
+  Result := SortCompare(Left.Filenames, Right.Filenames);
 end;
 
 end.

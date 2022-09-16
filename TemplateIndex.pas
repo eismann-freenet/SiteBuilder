@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ uses
   IndexPageList;
 
 procedure WriteIndex(const Filename, ChangelogFile, SiteKey, SiteName,
-  SiteAuthor, SiteDescription: string; const MaxEdition: Integer;
+  SiteAuthor, SiteDescription, SiteKeywords: string; const MaxEdition: Integer;
   const Pages: TIndexPageList);
 
 implementation
 
 uses
-  Classes, SysUtils, IndexPage, HTTPUtil, Tools, SiteEncoding, StringReplacer,
+  Classes, SysUtils, IndexPage, HTTPUtil, SiteEncoding, StringReplacer,
   FileInfo;
 
 function Spaces(const Count: Integer): string;
@@ -59,7 +59,7 @@ begin
 end;
 
 procedure WriteIndex(const Filename, ChangelogFile, SiteKey, SiteName,
-  SiteAuthor, SiteDescription: string; const MaxEdition: Integer;
+  SiteAuthor, SiteDescription, SiteKeywords: string; const MaxEdition: Integer;
   const Pages: TIndexPageList);
 var
   Output, LastTitleParts, TitleParts: TStringList;
@@ -83,12 +83,12 @@ begin
     Output.Add(
       '  <meta http-equiv="content-type" content="text/html; charset=utf-8" />'
       );
-    Output.Add('  <meta http-equiv="content-language" content="en" />');
-    Output.Add('  <meta name="language" content="en" />');
     Output.Add('  <meta name="author" content="' + HTMLEscape(SiteAuthor)
         + '" />');
     Output.Add('  <meta name="description" content="' + HTMLEscape
         (SiteDescription) + '" />');
+    Output.Add('  <meta name="keywords" content="' + HTMLEscape(SiteKeywords)
+        + '" />');
     Output.Add(
       '  <link rel="stylesheet" type="text/css" media="all" href="design.css" />');
     Output.Add('  <title>' + HTMLEscape(SiteName) + '</title>');
@@ -100,12 +100,12 @@ begin
 
     OpenLevel := 0;
 
-    for I := 0 to Pages.List.Count - 1 do
+    for I := 0 to Pages.Count - 1 do
     begin
-      Page := Pages.List[I];
-      if I < Pages.List.Count - 1 then
+      Page := Pages[I];
+      if I < Pages.Count - 1 then
       begin
-        NextPage := Pages.List[I + 1];
+        NextPage := Pages[I + 1];
       end
       else
       begin
@@ -137,9 +137,10 @@ begin
           NormalizeLevel(Output, OpenLevel, J);
 
           Output.Add(Spaces(4 + (4 * OpenLevel)) + '<li>' + '<a href="' +
-              TStringReplacer.HTMLEscapeAll(Page.URL) + '">' + HTMLEscape
+              TStringReplacer.URLEncode(Page.URL) + '">' + HTMLEscape
               (TitleParts[J]) + '</a>');
-          if (NextPage = nil) or (Pos(Page.Title, NextPage.Title) = 0) then
+          if (NextPage = nil) or (Pos(Page.Title + ' > ', NextPage.Title) = 0)
+            then
           begin
             Output[Output.Count - 1] := Output[Output.Count - 1] + '</li>';
           end;

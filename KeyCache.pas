@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,15 +19,19 @@ unit KeyCache;
 interface
 
 uses
-  Classes, SQLite3Wrap;
+  SQLite3Wrap;
 
 type
-  TKeyCache = class(TPersistent)
+  TIntegerArray = array of Integer;
+
+  TKeyCache = class
 
   strict private
     FDB: TSQLite3Database;
     FKeySearchStatement: TSQLite3Statement;
+    FCRCSearchStatement: TSQLite3Statement;
     FInsertEntryStatement: TSQLite3Statement;
+    FSelectKeyStatement: TSQLite3Statement;
     FSelectFilesizeStatement: TSQLite3Statement;
     FSelectThumbnailHeightStatement: TSQLite3Statement;
     FSelectThumbnailWidthStatement: TSQLite3Statement;
@@ -48,14 +52,15 @@ type
     FInsertDatabaseVersion: TSQLite3Statement;
     FUpdateDatabaseVersion: TSQLite3Statement;
     FSelectDatabaseVersion: TSQLite3Statement;
+    FSelectSimilarVideoLength: TSQLite3Statement;
 
     function GetIntValue(Statement: TSQLite3Statement;
       const KeyID: Integer): Integer;
     function GetStringValue(Statement: TSQLite3Statement;
       const KeyID: Integer): string;
-    procedure UpdateIntValue(Statement: TSQLite3Statement;
+    class procedure UpdateIntValue(Statement: TSQLite3Statement;
       const KeyID: Integer; const Value: Integer);
-    procedure UpdateStringValue(Statement: TSQLite3Statement;
+    class procedure UpdateStringValue(Statement: TSQLite3Statement;
       const KeyID: Integer; const Value: string);
 
     function GetDatabaseVersion: Integer;
@@ -77,7 +82,9 @@ type
     procedure UpdateFilesize(const KeyID, Value: Integer);
     procedure UpdateCRC(const KeyID: Integer; const Value: string);
 
-    function GetKeyID(const Key: string): Integer;
+    function GetKeyIDByKey(const Key: string): Integer;
+    function GetKeyIDByCRC(const CRC: string): Integer;
+    function GetKey(const KeyID: Integer): string;
     function GetVideoLength(const KeyID: Integer): Integer;
     function GetThumbnailHeight(const KeyID: Integer): Integer;
     function GetThumbnailWidth(const KeyID: Integer): Integer;
@@ -86,6 +93,9 @@ type
     function GetFilesize(const KeyID: Integer): Integer;
     function GetCRC(const KeyID: Integer): string;
 
+    function GetSimilarVideoLength(const VideoLength, Difference: Integer)
+      : TIntegerArray;
+
     procedure InitUsed;
     procedure SetUsed(const KeyID: Integer);
     procedure RemoveUnsed;
@@ -93,14 +103,15 @@ type
 
 implementation
 
-{ TKeyCache }
-
 uses
-  SQLite3, Logger, SysUtils;
+  SQLite3, SysUtils;
+
+{ TKeyCache }
 
 const
   KeyCacheTable = 'KeyCache';
-  KeyCacheIndex = 'KeyCacheIndex';
+  KeyCacheKeyIndex = 'KeyCacheKeyIndex';
+  KeyCacheCRCIndex = 'KeyCacheCRCIndex';
   ColumnID = 'ID';
   ColumnKey = 'Key';
   ColumnFilesize = 'Filesize';
@@ -114,7 +125,7 @@ const
   DatabaseVersionTable = 'DatabaseVersion';
   ColumnVersion = 'Version';
   MaxKeySize = 500;
-  CurrentDatabaseVersion = 1;
+  CurrentDatabaseVersion = 2;
 
   CreateDatabaseVersionTableSQL = 'CREATE TABLE IF NOT EXISTS ' +
     DatabaseVersionTable + ' (' + ColumnID +
@@ -137,12 +148,19 @@ const
     ' INTEGER, ' + ColumnVideoLength + ' INTEGER, ' + ColumnCRC +
     ' VARCHAR(8), ' + ColumnUsed + ' INTEGER);';
 
-  CreateKeyCacheIndexSQL = 'CREATE UNIQUE INDEX IF NOT EXISTS ' +
-    KeyCacheIndex + ' ON ' + KeyCacheTable + ' (' + ColumnKey +
-    ');';
+  CreateKeyCacheKeyIndexSQL = 'CREATE UNIQUE INDEX IF NOT EXISTS ' +
+    KeyCacheKeyIndex + ' ON ' + KeyCacheTable + ' (' + ColumnKey + ');';
 
-  SelectIDSQL = 'SELECT ' + ColumnID + ' FROM ' + KeyCacheTable + ' WHERE ' +
-    ColumnKey + ' = ?;';
+  DropOldKeyCacheKeyIndexSQL = 'DROP INDEX IF EXISTS KeyCacheIndex;';
+
+  CreateKeyCacheCRCIndexSQL = 'CREATE INDEX IF NOT EXISTS ' +
+    KeyCacheCRCIndex + ' ON ' + KeyCacheTable + ' (' + ColumnCRC + ');';
+
+  SelectIDByKeySQL = 'SELECT ' + ColumnID + ' FROM ' + KeyCacheTable +
+    ' WHERE ' + ColumnKey + ' = ?;';
+
+  SelectIDByCRCSQL = 'SELECT ' + ColumnID + ' FROM ' + KeyCacheTable +
+    ' WHERE ' + ColumnCRC + ' = ?;';
 
   InsertEntrySQL = 'INSERT INTO ' + KeyCacheTable + ' (' + ColumnKey + ', ' +
     ColumnFilesize + ', ' + ColumnThumbnailHeight + ', ' +
@@ -150,6 +168,9 @@ const
     ColumnBigThumbnailHeight + ', ' + ColumnBigThumbnailWidth + ', ' +
     ColumnVideoLength + ', ' + ColumnCRC + ', ' + ColumnUsed +
     ') VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1);';
+
+  SelectKeySQL = 'SELECT ' + ColumnKey + ' FROM ' + KeyCacheTable + ' WHERE ' +
+    ColumnID + ' = ?;';
 
   SelectFilesizeSQL = 'SELECT ' + ColumnFilesize + ' FROM ' + KeyCacheTable +
     ' WHERE ' + ColumnID + ' = ?;';
@@ -199,13 +220,17 @@ const
   RemoveUnusedSQL = 'DELETE FROM ' + KeyCacheTable + ' WHERE ' + ColumnUsed +
     ' = 0;';
 
+  SelectSimilarVideoLengthSQL = 'SELECT ' + ColumnID + ' FROM ' +
+    KeyCacheTable + ' WHERE ' + ColumnVideoLength +
+    ' BETWEEN ? AND ?;';
+
 procedure TKeyCache.Add(const Key: string; const Filesize, ThumbnailHeight,
   ThumbnailWidth, BigThumbnailHeight, BigThumbnailWidth, VideoLength: Integer;
   const CRC: string);
 begin
   if Length(Key) > MaxKeySize then
   begin
-    TLogger.LogError(Format('Key "%s" is to long.', [Key]));
+    raise Exception.CreateFmt('Key "%s" is to long.', [Key]);
   end;
   FInsertEntryStatement.BindText(1, Key);
   FInsertEntryStatement.BindInt(2, Filesize);
@@ -221,58 +246,62 @@ end;
 constructor TKeyCache.Create(const DBFilename: string);
 begin
   FDB := TSQLite3Database.Create;
-  try
-    FDB.Open(DBFilename);
 
-    FDB.Execute(CreateDatabaseVersionTableSQL);
-    FDB.Execute(CreateKeyCacheTableSQL);
-    FDB.Execute(CreateKeyCacheIndexSQL);
+  FDB.Open(DBFilename);
 
-    FInsertDatabaseVersion := FDB.Prepare(InsertDatabaseVersionSQL);
-    FUpdateDatabaseVersion := FDB.Prepare(UpdateDatabaseVersionSQL);
-    FSelectDatabaseVersion := FDB.Prepare(SelectDatabaseVersionSQL);
+  FDB.Execute(CreateDatabaseVersionTableSQL);
+  FDB.Execute(CreateKeyCacheTableSQL);
+  FDB.Execute(CreateKeyCacheKeyIndexSQL);
+  FDB.Execute(CreateKeyCacheCRCIndexSQL);
 
-    FKeySearchStatement := FDB.Prepare(SelectIDSQL);
-    FInsertEntryStatement := FDB.Prepare(InsertEntrySQL);
+  FInsertDatabaseVersion := FDB.Prepare(InsertDatabaseVersionSQL);
+  FUpdateDatabaseVersion := FDB.Prepare(UpdateDatabaseVersionSQL);
+  FSelectDatabaseVersion := FDB.Prepare(SelectDatabaseVersionSQL);
 
-    FSelectFilesizeStatement := FDB.Prepare(SelectFilesizeSQL);
-    FSelectThumbnailHeightStatement := FDB.Prepare(SelectThumbnailHeightSQL);
-    FSelectThumbnailWidthStatement := FDB.Prepare(SelectThumbnailWidthSQL);
-    FSelectBigThumbnailHeightStatement := FDB.Prepare
-      (SelectBigThumbnailHeightSQL);
-    FSelectBigThumbnailWidthStatement := FDB.Prepare
-      (SelectBigThumbnailWidthSQL);
-    FSelectVideoLengthStatement := FDB.Prepare(SelectVideoLengthSQL);
-    FSelectCRCStatement := FDB.Prepare(SelectCRCSQL);
+  FKeySearchStatement := FDB.Prepare(SelectIDByKeySQL);
+  FInsertEntryStatement := FDB.Prepare(InsertEntrySQL);
 
-    FUpdateFilesizeStatement := FDB.Prepare(UpdateFilesizeSQL);
-    FUpdateThumbnailHeightStatement := FDB.Prepare(UpdateThumbnailHeightSQL);
-    FUpdateThumbnailWidthStatement := FDB.Prepare(UpdateThumbnailWidthSQL);
-    FUpdateBigThumbnailHeightStatement := FDB.Prepare
-      (UpdateBigThumbnailHeightSQL);
-    FUpdateBigThumbnailWidthStatement := FDB.Prepare
-      (UpdateBigThumbnailWidthSQL);
-    FUpdateVideoLengthStatement := FDB.Prepare(UpdateVideoLengthSQL);
-    FUpdateCRCStatement := FDB.Prepare(UpdateCRCSQL);
+  FCRCSearchStatement := FDB.Prepare(SelectIDByCRCSQL);
 
-    FInitUsedStatement := FDB.Prepare(InitUsedSQL);
-    FSetUsedStatement := FDB.Prepare(SetUsedSQL);
-    FRemoveUnusedStatement := FDB.Prepare(RemoveUnusedSQL);
+  FSelectKeyStatement := FDB.Prepare(SelectKeySQL);
+  FSelectFilesizeStatement := FDB.Prepare(SelectFilesizeSQL);
+  FSelectThumbnailHeightStatement := FDB.Prepare(SelectThumbnailHeightSQL);
+  FSelectThumbnailWidthStatement := FDB.Prepare(SelectThumbnailWidthSQL);
+  FSelectBigThumbnailHeightStatement := FDB.Prepare
+    (SelectBigThumbnailHeightSQL);
+  FSelectBigThumbnailWidthStatement := FDB.Prepare(SelectBigThumbnailWidthSQL);
+  FSelectVideoLengthStatement := FDB.Prepare(SelectVideoLengthSQL);
+  FSelectCRCStatement := FDB.Prepare(SelectCRCSQL);
 
-    case GetDatabaseVersion of
-      - 1, 0: // missing version
-        begin
-          SetDatabaseVersion(CurrentDatabaseVersion);
-        end;
-      CurrentDatabaseVersion:
-        ; // nothing to do
-    end;
+  FUpdateFilesizeStatement := FDB.Prepare(UpdateFilesizeSQL);
+  FUpdateThumbnailHeightStatement := FDB.Prepare(UpdateThumbnailHeightSQL);
+  FUpdateThumbnailWidthStatement := FDB.Prepare(UpdateThumbnailWidthSQL);
+  FUpdateBigThumbnailHeightStatement := FDB.Prepare
+    (UpdateBigThumbnailHeightSQL);
+  FUpdateBigThumbnailWidthStatement := FDB.Prepare(UpdateBigThumbnailWidthSQL);
+  FUpdateVideoLengthStatement := FDB.Prepare(UpdateVideoLengthSQL);
+  FUpdateCRCStatement := FDB.Prepare(UpdateCRCSQL);
 
-  except
-    on E: ESQLite3Error do
-    begin
-      TLogger.LogFatal(E.Message);
-    end;
+  FInitUsedStatement := FDB.Prepare(InitUsedSQL);
+  FSetUsedStatement := FDB.Prepare(SetUsedSQL);
+  FRemoveUnusedStatement := FDB.Prepare(RemoveUnusedSQL);
+
+  FSelectSimilarVideoLength := FDB.Prepare(SelectSimilarVideoLengthSQL);
+
+  case GetDatabaseVersion of
+    - 1, 0: // missing version
+      begin
+        SetDatabaseVersion(CurrentDatabaseVersion);
+      end;
+    1:
+      begin
+        FDB.Execute(DropOldKeyCacheKeyIndexSQL);
+        SetDatabaseVersion(CurrentDatabaseVersion);
+      end;
+    CurrentDatabaseVersion:
+      ; // nothing to do
+  else
+    raise Exception.Create('Unknown Database-Version!');
   end;
 end;
 
@@ -285,6 +314,9 @@ begin
   FKeySearchStatement.Free;
   FInsertEntryStatement.Free;
 
+  FCRCSearchStatement.Free;
+
+  FSelectKeyStatement.Free;
   FSelectFilesizeStatement.Free;
   FSelectThumbnailHeightStatement.Free;
   FSelectThumbnailWidthStatement.Free;
@@ -304,6 +336,8 @@ begin
   FInitUsedStatement.Free;
   FSetUsedStatement.Free;
   FRemoveUnusedStatement.Free;
+
+  FSelectSimilarVideoLength.Free;
 
   FDB.Free;
 
@@ -328,7 +362,23 @@ begin
   end;
 end;
 
-function TKeyCache.GetKeyID(const Key: string): Integer;
+function TKeyCache.GetKey(const KeyID: Integer): string;
+begin
+  Result := GetStringValue(FSelectKeyStatement, KeyID);
+end;
+
+function TKeyCache.GetKeyIDByCRC(const CRC: string): Integer;
+begin
+  Result := -1;
+  FCRCSearchStatement.BindText(1, CRC);
+  while FCRCSearchStatement.Step = SQLITE_ROW do
+  begin
+    Result := FCRCSearchStatement.ColumnInt(0);
+  end;
+  FCRCSearchStatement.Reset;
+end;
+
+function TKeyCache.GetKeyIDByKey(const Key: string): Integer;
 begin
   Result := -1;
   FKeySearchStatement.BindText(1, Key);
@@ -349,6 +399,20 @@ begin
     Result := Statement.ColumnInt(0);
   end;
   Statement.Reset;
+end;
+
+function TKeyCache.GetSimilarVideoLength(const VideoLength, Difference: Integer)
+  : TIntegerArray;
+begin
+  SetLength(Result, 0);
+  FSelectSimilarVideoLength.BindInt(1, VideoLength - Difference);
+  FSelectSimilarVideoLength.BindInt(2, VideoLength + Difference);
+  while FSelectSimilarVideoLength.Step = SQLITE_ROW do
+  begin
+    SetLength(Result, Length(Result) + 1);
+    Result[ High(Result)] := FSelectSimilarVideoLength.ColumnInt(0);
+  end;
+  FSelectSimilarVideoLength.Reset;
 end;
 
 function TKeyCache.GetStringValue(Statement: TSQLite3Statement;
@@ -414,7 +478,7 @@ begin
   Result := GetStringValue(FSelectCRCStatement, KeyID);
 end;
 
-procedure TKeyCache.UpdateIntValue(Statement: TSQLite3Statement;
+class procedure TKeyCache.UpdateIntValue(Statement: TSQLite3Statement;
   const KeyID: Integer; const Value: Integer);
 begin
   Statement.BindInt(1, Value);
@@ -422,7 +486,7 @@ begin
   Statement.StepAndReset;
 end;
 
-procedure TKeyCache.UpdateStringValue(Statement: TSQLite3Statement;
+class procedure TKeyCache.UpdateStringValue(Statement: TSQLite3Statement;
   const KeyID: Integer; const Value: string);
 begin
   Statement.BindText(1, Value);

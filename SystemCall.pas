@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,17 +19,21 @@ unit SystemCall;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes;
 
 function ExecuteOutput(const Command: string; var Output: string): Boolean;
 function ExecuteWait(const Command: string): Boolean;
 function GetRandomTempFilename: string;
+function DeleteFile(const Filename: string): Boolean;
 function DeleteFiles(Files: TStringList): Boolean;
+function CopyFile(const Source, Destination: string): Boolean;
+function GetDecimalSeparator: Char;
+function StringCompare(const Text1, Text2: string): Integer;
 
 implementation
 
 uses
-  Windows, Forms;
+  Windows, Forms, SysUtils;
 
 function ReadPipe(Pipe: THandle): string;
 var
@@ -53,8 +57,8 @@ end;
 function ExecuteOutput(const Command: string; var Output: string): Boolean;
 var
   PipeOutputRead, PipeOutputWrite: THandle;
-  ProcessInfo: TProcessInformation;
   SecurityAttr: TSecurityAttributes;
+  ProcessInfo: TProcessInformation;
   StartupInfo: TStartupInfo;
 begin
   FillChar(ProcessInfo, SizeOf(TProcessInformation), 0);
@@ -80,16 +84,15 @@ begin
     dwFlags := STARTF_USESHOWWINDOW or STARTF_USESTDHANDLES;
   end;
 
-  if CreateProcess(nil, PChar(Trim(Command)), nil, nil, True,
+  Result := CreateProcess(nil, PChar(Trim(Command)), nil, nil, True,
     CREATE_DEFAULT_ERROR_MODE or CREATE_NEW_CONSOLE or NORMAL_PRIORITY_CLASS,
-    nil, nil, StartupInfo, ProcessInfo) then
+    nil, nil, StartupInfo, ProcessInfo);
+
+  CloseHandle(PipeOutputWrite);
+
+  if Result then
   begin
-    Result := True;
-
-    CloseHandle(PipeOutputWrite);
-
     Output := ReadPipe(PipeOutputRead);
-    CloseHandle(PipeOutputRead);
 
     while WaitForSingleObject(ProcessInfo.hProcess, 10) > 0 do
     begin
@@ -98,13 +101,9 @@ begin
 
     CloseHandle(ProcessInfo.hProcess);
     CloseHandle(ProcessInfo.hThread);
-  end
-  else
-  begin
-    Result := False;
-    CloseHandle(PipeOutputRead);
-    CloseHandle(PipeOutputWrite);
   end;
+
+  CloseHandle(PipeOutputRead);
 end;
 
 function ExecuteWait(const Command: string): Boolean;
@@ -151,6 +150,11 @@ begin
   SysUtils.DeleteFile(Result);
 end;
 
+function DeleteFile(const Filename: string): Boolean;
+begin
+  Result := SysUtils.DeleteFile(Filename);
+end;
+
 function DeleteFiles(Files: TStringList): Boolean;
 var
   OneFile: string;
@@ -158,11 +162,32 @@ begin
   Result := True;
   for OneFile in Files do
   begin
-    if not SysUtils.DeleteFile(OneFile) then
+    if not DeleteFile(OneFile) then
     begin
       Result := False;
     end;
   end;
+end;
+
+function CopyFile(const Source, Destination: string): Boolean;
+begin
+  Result := Windows.CopyFile(PChar(Source), PChar(Destination), False);
+end;
+
+function GetDecimalSeparator: Char;
+var
+  Format: TFormatSettings;
+begin
+  GetLocaleFormatSettings(LOCALE_SYSTEM_DEFAULT, Format);
+  Result := Format.DecimalSeparator;
+end;
+
+function StrCmpLogicalW(const P1, P2: PWideChar): Integer; stdcall;
+external 'Shlwapi.dll';
+
+function StringCompare(const Text1, Text2: string): Integer;
+begin
+  Result := StrCmpLogicalW(PChar(Text1), PChar(Text2));
 end;
 
 end.

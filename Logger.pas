@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2015 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -18,11 +18,8 @@ unit Logger;
 
 interface
 
-uses
-  Classes;
-
 type
-  TLogger = class(TPersistent)
+  TLogger = class
 
   strict private
     class var ErrorCount: Integer;
@@ -41,9 +38,6 @@ type
   end;
 
 implementation
-
-uses
-  SysUtils;
 
 { TLogger }
 
@@ -71,7 +65,6 @@ end;
 class procedure TLogger.LogFatal(const Msg: string);
 begin
   Log('Fatal: ' + Msg);
-  raise Exception.Create(Msg);
 end;
 
 class procedure TLogger.LogInfo(const Msg: string);
