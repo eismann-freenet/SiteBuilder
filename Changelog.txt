@@ -44,3 +44,16 @@ Version 1.1
 - Fixed a lot of bugs.
 - Added meta-tags for author and description to every
   generated html-file of the freesite.
+
+Version 1.2
+- Moved generation of the file-identifier from TemplateContent to TFileInfo.
+- Added infos about the audio type (none, original, music) of a file
+  and show it in a CSS popup.
+- Added infos about duplicate files of a file and show it in a CSS popup.
+- Use the bookmarks-file of Freenet to determine the latest edition of all linked freesites.
+- Added default-values for all options in the ini-file.
+- Refactored the class TThumbnail.
+- Added replacement-rules for all Albanian and Portuguese letters.
+- Added the tools CopyFilesFromSection and DuplicateChecker.
+- Added documentation for all tools.
+- Fixed a lot of bugs.
