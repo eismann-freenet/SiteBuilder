@@ -47,7 +47,7 @@ thead {
 	font-weight: bold;
 }
 
-thead td {
+thead th {
 	border-top: none;
 	border-bottom: 1px solid black;
 	border-left: none;

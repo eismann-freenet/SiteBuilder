@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -75,10 +75,8 @@ begin
     TitleParts := TStringList.Create;
     LastTitleParts := TStringList.Create;
 
-    Output.Add('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"');
-    Output.Add('  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">');
-    Output.Add(
-      '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">');
+    Output.Add('<!DOCTYPE html>');
+    Output.Add('<html lang="en">');
     Output.Add('<head>');
     Output.Add(
       '  <meta http-equiv="content-type" content="text/html; charset=utf-8" />'
