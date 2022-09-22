@@ -74,6 +74,7 @@
 			<DCCReference Include="TemplateIndex.pas"/>
 			<DCCReference Include="Thumbnail.pas"/>
 			<DCCReference Include="UTF8EncodingNoBOM.pas"/>
+			<DCCReference Include="Config.pas"/>
 			<BuildConfiguration Include="Basis">
 				<Key>Base</Key>
 			</BuildConfiguration>

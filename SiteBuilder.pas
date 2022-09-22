@@ -22,9 +22,6 @@ uses
   Classes, FileInfoList, IndexPageList, KeyCache, Thumbnail, Changelog,
   DuplicateTree, FileInfoTree, BookmarksParser;
 
-const
-  ConfigKey = 'SiteBuilder';
-
 type
   TSiteBuilder = class
 
@@ -95,9 +92,10 @@ type
 implementation
 
 uses
-  SysUtils, FileInfo, IndexPage, Logger, IniFiles,
+  SysUtils, FileInfo, IndexPage, Logger,
   TemplateChangelog, TemplateIndex, TemplateContent, SystemCall, CSVFile,
-  DuplicateList, Generics.Collections, StringReplacer, Key, SiteEncoding;
+  DuplicateList, Generics.Collections, StringReplacer, Key, SiteEncoding,
+  Config;
 
 { TSiteBuilder }
 
@@ -109,37 +107,26 @@ var
     ImageThumbnailMaxHeight: Integer;
   VideoTimeFormat, FFMPEGPath, ImageMagickPath, KeyCacheFilename,
     BookmarksParserFilename: string;
-  ConfigFile: TMemIniFile;
+  Config: TConfig;
 begin
-  if not FileExists(ConfigFilename) then
-  begin
-    raise Exception.CreateFmt('Configuration-File "%s" is missing!',
-      [ConfigFilename]);
-  end;
-
-  ConfigFile := TMemIniFile.Create(ConfigFilename, TEncoding.UTF8);
+  Config := TConfig.Create(ConfigFilename);
   try
-    VideoThumbnailCountHorizontal := ConfigFile.ReadInteger(ConfigKey,
-      'VideoThumbnailCountHorizontal', 4);
-    VideoThumbnailCountVertical := ConfigFile.ReadInteger(ConfigKey,
-      'VideoThumbnailCountVertical', 1);
-    VideoThumbnailMaxWidth := ConfigFile.ReadInteger(ConfigKey,
-      'VideoThumbnailMaxWidth', 992);
-    VideoBigThumbnailCountHorizontal := ConfigFile.ReadInteger(ConfigKey,
-      'VideoBigThumbnailCountHorizontal', 4);
-    VideoBigThumbnailCountVertical := ConfigFile.ReadInteger(ConfigKey,
-      'VideoBigThumbnailCountVertical', 4);
-    VideoBigThumbnailMaxWidth := ConfigFile.ReadInteger(ConfigKey,
-      'VideoBigThumbnailMaxWidth', 1024);
-    VideoTimeFormat := ConfigFile.ReadString(ConfigKey, 'VideoTimeFormat',
-      '%.2d:%.2d:%.2d');
-    ImageThumbnailMaxHeight := ConfigFile.ReadInteger(ConfigKey,
-      'ImageThumbnailMaxHeight', 186);
+    VideoThumbnailCountHorizontal := Config.ReadInteger
+      (VIDEO_THUMBNAIL_COUNT_HORIZONTAL);
+    VideoThumbnailCountVertical := Config.ReadInteger
+      (VIDEO_THUMBNAIL_COUNT_VERTICAL);
+    VideoThumbnailMaxWidth := Config.ReadInteger(VIDEO_THUMBNAIL_MAX_WIDTH);
+    VideoBigThumbnailCountHorizontal := Config.ReadInteger
+      (VIDEO_BIG_THUMBNAIL_COUNT_HORIZONTAL);
+    VideoBigThumbnailCountVertical := Config.ReadInteger
+      (VIDEO_BIG_THUMBNAIL_COUNT_VERTICAL);
+    VideoBigThumbnailMaxWidth := Config.ReadInteger
+      (VIDEO_BIG_THUMBNAIL_MAX_WIDTH);
+    VideoTimeFormat := Config.ReadString(VIDEO_TIME_FORMAT);
+    ImageThumbnailMaxHeight := Config.ReadInteger(IMAGE_THUMBNAIL_MAX_HEIGHT);
 
-    FFMPEGPath := ConfigFile.ReadString(ConfigKey, 'FFMPEGPath',
-      '.\programs\FFmpeg\bin\');
-    ImageMagickPath := ConfigFile.ReadString(ConfigKey, 'ImageMagickPath',
-      '.\programs\ImageMagick\');
+    FFMPEGPath := Config.ReadString(FFMPEG_PATH);
+    ImageMagickPath := Config.ReadString(IMAGEMAGICK_PATH);
 
     FThumbnail := TThumbnail.Create(VideoThumbnailCountHorizontal,
       VideoThumbnailCountVertical, VideoThumbnailMaxWidth, VideoTimeFormat,
@@ -149,68 +136,48 @@ begin
       VideoTimeFormat, ImageThumbnailMaxHeight, FFMPEGPath,
       ImageMagickPath);
 
-    KeyCacheFilename := ConfigFile.ReadString(ConfigKey, 'KeyCacheFilename',
-      '.\key-cache.db3');
+    KeyCacheFilename := Config.ReadString(KEY_CACHE_FILENAME);
     FKeyCacheDatabase := TKeyCache.Create(KeyCacheFilename);
 
-    FContentPath := ConfigFile.ReadString(ConfigKey, 'ContentPath',
-      '.\data\content');
-    FContentFileExtension := ConfigFile.ReadString(ConfigKey,
-      'ContentFileExtension', '.csv');
+    FContentPath := Config.ReadString(CONTENT_PATH);
+    FContentFileExtension := Config.ReadString(CONTENT_FILE_EXTENSION);
 
-    FDuplicatePath := ConfigFile.ReadString(ConfigKey, 'DuplicatePath',
-      '.\data\duplicate');
-    FDuplicateFileExtension := ConfigFile.ReadString(ConfigKey,
-      'DuplicateFileExtension', '.csv');
+    FDuplicatePath := Config.ReadString(DUPLICATE_PATH);
+    FDuplicateFileExtension := Config.ReadString(DUPLICATE_FILE_EXTENSION);
 
-    FChangelogFilename := ConfigFile.ReadString(ConfigKey, 'ChangelogFilename',
-      '.\data\Changelog.csv');
+    FChangelogFilename := Config.ReadString(CHANGELOG_FILENAME);
     FChangelog := TChangelog.Create(FChangelogFilename);
 
-    FDataPath := ConfigFile.ReadString(ConfigKey, 'DataPath', '.\data-files');
-    FInfoFilename := ConfigFile.ReadString(ConfigKey, 'InfoFilename',
-      'Info.txt');
+    FDataPath := Config.ReadString(DATA_PATH);
+    FInfoFilename := Config.ReadString(INFO_FILENAME);
 
-    FSitePath := ConfigFile.ReadString(ConfigKey, 'SitePath', '.\site');
-    FOutputExtension := ConfigFile.ReadString(ConfigKey, 'OutputExtension',
-      '.htm');
+    FSitePath := Config.ReadString(SITE_PATH);
+    FOutputExtension := Config.ReadString(OUTPUT_EXTENSION);
 
-    FThumbnailPath := ConfigFile.ReadString(ConfigKey, 'ThumbnailPath',
-      'Thumbnails');
-    FThumbnailExtension := ConfigFile.ReadString(ConfigKey,
-      'ThumbnailExtension', '.jpg');
+    FThumbnailPath := Config.ReadString(THUMBNAIL_PATH);
+    FThumbnailExtension := Config.ReadString(THUMBNAIL_EXTENSION);
 
-    FCRCPath := ConfigFile.ReadString(ConfigKey, 'CRCPath', 'CRCs');
-    FCRCExtension := ConfigFile.ReadString(ConfigKey, 'CRCExtension', '.csv');
-    FSFVExtension := ConfigFile.ReadString(ConfigKey, 'SFVExtension', '.sfv');
+    FCRCPath := Config.ReadString(CRC_PATH);
+    FCRCExtension := Config.ReadString(CRC_EXTENSION);
+    FSFVExtension := Config.ReadString(SFV_EXTENSION);
 
-    FSourceFolderSite := ConfigFile.ReadString(ConfigKey, 'SourceFolderSite',
-      'Sources');
-    FContentFolderSite := ConfigFile.ReadString(ConfigKey, 'ContentFolderSite',
-      'Content');
-    FDuplicateFolderSite := ConfigFile.ReadString(ConfigKey,
-      'DuplicateFolderSite', 'Duplicate');
+    FSourceFolderSite := Config.ReadString(SOURCE_FOLDER_SITE);
+    FContentFolderSite := Config.ReadString(CONTENT_FOLDER_SITE);
+    FDuplicateFolderSite := Config.ReadString(DUPLICATE_FOLDER_SITE);
 
-    FIndexFilename := ConfigFile.ReadString(ConfigKey, 'IndexFilename',
-      'index');
-    FChangelogFilenameSite := ConfigFile.ReadString(ConfigKey,
-      'ChangelogFilenameSite', 'changelog');
-    FStaticFiles := ConfigFile.ReadString(ConfigKey, 'StaticFiles',
-      'design.css|activelink.png|about.htm');
+    FIndexFilename := Config.ReadString(INDEX_FILENAME);
+    FChangelogFilenameSite := Config.ReadString(CHANGELOG_FILENAME_SITE);
+    FStaticFiles := Config.ReadString(STATIC_FILES);
 
-    FNewKeyName := ConfigFile.ReadString(ConfigKey, 'NewKeyName', 'New Keys');
+    FNewKeyName := Config.ReadString(NEW_KEY_NAME);
 
-    FSiteKey := ConfigFile.ReadString(ConfigKey, 'SiteKey',
-      'USK@yoursitekey/site/');
-    FSiteName := ConfigFile.ReadString(ConfigKey, 'SiteName', 'MySite');
-    FSiteAuthor := ConfigFile.ReadString(ConfigKey, 'SiteAuthor', 'MyName');
-    FSiteDescription := ConfigFile.ReadString(ConfigKey, 'SiteDescription',
-      'Some nice freesite');
-    FSiteKeywords := ConfigFile.ReadString(ConfigKey, 'SiteKeywords',
-      'keyword1, keyword2'); ;
+    FSiteKey := Config.ReadString(SITE_KEY);
+    FSiteName := Config.ReadString(SITE_NAME);
+    FSiteAuthor := Config.ReadString(SITE_AUTHOR);
+    FSiteDescription := Config.ReadString(SITE_DESCRIPTION);
+    FSiteKeywords := Config.ReadString(SITE_KEYWORDS);
 
-    BookmarksParserFilename := ConfigFile.ReadString(ConfigKey,
-      'Bookmarks-File', '.\bookmarks.dat');
+    BookmarksParserFilename := Config.ReadString(BOOKMARKS_FILE);
 
     FDuplicateTree := TDuplicateTree.Create;
     FFileInfoTree := TFileInfoTree.Create;
@@ -225,7 +192,7 @@ begin
     FBookmarksParser := TBookmarksParser.Create(BookmarksParserFilename,
       TEncoding.UTF8);
   finally
-    ConfigFile.Free;
+    Config.Free;
   end;
 end;
 

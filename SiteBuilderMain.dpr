@@ -48,7 +48,9 @@ uses
   TemplateIndex in 'TemplateIndex.pas',
   Thumbnail in 'Thumbnail.pas',
   UTF8EncodingNoBOM in 'UTF8EncodingNoBOM.pas',
-  SysUtils;
+  SysUtils,
+  Config in 'Config.pas';
+
 {$R *.res}
 
 var
