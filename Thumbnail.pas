@@ -110,7 +110,7 @@ procedure TThumbnail.GenerateVideoThumbnail(const Filename,
   OutputFilename: string);
 var
   CurrentSeekPos, CurrentPos, CurrentDisplayPos, ScreenShotFilename,
-    EditScreenShotFilename, SourceFilename, AllFiles, Output: string;
+    EditScreenShotFilename, AllFiles, Output: string;
   SubLength, I, ThumbnailCount, SeekPos, RenderPos: Integer;
   FilesToDelete: TStringList;
   RegEx: TPerlRegEx;
@@ -127,8 +127,6 @@ begin
   try
     RegEx := TPerlRegEx.Create;
     FilesToDelete := TStringList.Create;
-
-    SourceFilename := Filename;
 
     for I := 1 to ThumbnailCount do
     begin
@@ -156,12 +154,12 @@ begin
       begin
         // Don't seek to 00:00:00 to avoid a possible missing key-frame.
         ExecuteWait(Format(ScreenShotMissingKeyFrameCommand, [FFFMPEG,
-            SourceFilename, CurrentPos, ScreenShotFilename]));
+            Filename, CurrentPos, ScreenShotFilename]));
       end
       else
       begin
         ExecuteWait(Format(ScreenShotCommand, [FFFMPEG, CurrentSeekPos,
-            SourceFilename, CurrentPos, ScreenShotFilename]))
+            Filename, CurrentPos, ScreenShotFilename]))
       end;
 
       ExecuteWait(Format(ScreenShotEditCommand, [FConvert, ScreenShotFilename,
@@ -177,10 +175,6 @@ begin
     if not DeleteFiles(FilesToDelete) then
     begin
       TLogger.LogError('Unable to delete the temporary files!');
-    end;
-    if SourceFilename <> Filename then
-    begin
-      DeleteFile(SourceFilename);
     end;
   finally
     FilesToDelete.Free;
