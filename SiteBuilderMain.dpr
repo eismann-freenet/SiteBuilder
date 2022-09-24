@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -50,17 +50,22 @@ uses
   UTF8EncodingNoBOM in 'UTF8EncodingNoBOM.pas',
   SysUtils,
   Config in 'Config.pas';
-
 {$R *.res}
 
 var
   SiteBuilder: TSiteBuilder;
-  ExePath: string;
+  ConfigFile: string;
 
 begin
   try
-    ExePath := ExtractFilePath(ParamStr(0));
-    SiteBuilder := TSiteBuilder.Create(ExePath + 'Options.ini');
+    ConfigFile := ParamStr(1);
+    if ConfigFile = '' then
+    begin
+      raise Exception.Create
+        ('Parameter 1 have to be a configuration filename!');
+    end;
+
+    SiteBuilder := TSiteBuilder.Create(ConfigFile);
     try
       SiteBuilder.Run;
     finally

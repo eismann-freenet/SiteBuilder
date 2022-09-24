@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -20,51 +20,55 @@ program CopyFilesFromSection;
 uses
   SysUtils,
   Classes,
-  IniFiles,
   IOUtils,
   FileInfo in 'FileInfo.pas',
-  FileInfoList in 'FileInfoList.pas',
   FileInfoTree in 'FileInfoTree.pas',
   KeyCache in 'KeyCache.pas',
   Logger in 'Logger.pas',
   SiteBuilder in 'SiteBuilder.pas',
   Thumbnail in 'Thumbnail.pas',
-  DuplicateEntry in 'DuplicateEntry.pas',
-  DuplicateList in 'DuplicateList.pas',
   DuplicateTree in 'DuplicateTree.pas',
   BookmarksParser in 'BookmarksParser.pas',
-  Key in 'Key.pas';
+  Key in 'Key.pas',
+  Config in 'Config.pas';
 {$R *.res}
 
-const
-  ConfigKey = 'SiteBuilder';
-  ConfigFilename = '.\Options.ini';
-
 var
-  SourceFile, ExePath, Section, TargetPath: string;
+  ConfigFile, SourceFile, Section, TargetPath: string;
+  ContentPath, ContentFileExtension, VideoTimeFormat, FFMPEGPath,
+    ImageMagickPath, KeyCacheFile, BookmarksParserFilename, NewKeyName,
+    DataPath, SitePath, ThumbnailPath, ThumbnailExtension,
+    CRCPath: string;
+  VideoThumbnailCountHorizontal, VideoThumbnailCountVertical,
+    VideoThumbnailMaxWidth, ImageThumbnailMaxHeight: Integer;
   Files: TStringList;
   FileInfoTree: TFileInfoTree;
   FileInfo: TFileInfo;
-  ConfigFile: TMemIniFile;
   Thumbnail: TThumbnail;
-  KeyCacheDatabase: TKeyCache;
+  KeyCache: TKeyCache;
   DuplicateTree: TDuplicateTree;
   BookmarksParser: TBookmarksParser;
+  Config: TConfig;
 
 begin
   try
-    ExePath := ExtractFilePath(ParamStr(0));
-    Section := ParamStr(1);
-    TargetPath := ParamStr(2);
-
-    if Section = '' then
+    ConfigFile := ParamStr(1);
+    if ConfigFile = '' then
     begin
-      raise Exception.Create('Param 1 have to be a Section!');
+      raise Exception.Create
+        ('Parameter 1 have to be a configuration filename!');
     end;
 
+    Section := ParamStr(2);
+    if Section = '' then
+    begin
+      raise Exception.Create('Parameter 2 have to be a section!');
+    end;
+
+    TargetPath := ParamStr(3);
     if TargetPath = '' then
     begin
-      raise Exception.Create('Param 2 have to be a TargetPath!');
+      raise Exception.Create('Parameter 3 have to be a target path!');
     end;
 
     if not DirectoryExists(TargetPath) then
@@ -73,50 +77,61 @@ begin
       ForceDirectories(TargetPath);
     end;
 
-    if not FileExists(ConfigFilename) then
-    begin
-      raise Exception.CreateFmt('Configuration-File "%s" is missing!',
-        [ConfigFilename]);
-    end;
-
+    Config := nil;
     Files := nil;
-    BookmarksParser := nil;
-    ConfigFile := nil;
-    KeyCacheDatabase := nil;
     Thumbnail := nil;
+    KeyCache := nil;
+    BookmarksParser := nil;
     DuplicateTree := nil;
+    FileInfoTree := nil;
     try
+      Config := TConfig.Create(ConfigFile);
+
+      ContentPath := Config.ReadString(CONTENT_PATH);
+      ContentFileExtension := Config.ReadString(CONTENT_FILE_EXTENSION);
       Files := TStringList.Create;
+      TSiteBuilder.GetFileList(ContentPath, ContentFileExtension, false, Files);
+
+      VideoThumbnailCountHorizontal := Config.ReadInteger
+        (VIDEO_THUMBNAIL_COUNT_HORIZONTAL);
+      VideoThumbnailCountVertical := Config.ReadInteger
+        (VIDEO_THUMBNAIL_COUNT_VERTICAL);
+      VideoThumbnailMaxWidth := Config.ReadInteger(VIDEO_THUMBNAIL_MAX_WIDTH);
+      VideoTimeFormat := Config.ReadString(VIDEO_TIME_FORMAT);
+      ImageThumbnailMaxHeight := Config.ReadInteger(IMAGE_THUMBNAIL_MAX_HEIGHT);
+      FFMPEGPath := Config.ReadString(FFMPEG_PATH);
+      ImageMagickPath := Config.ReadString(IMAGEMAGICK_PATH);
+      Thumbnail := TThumbnail.Create(VideoThumbnailCountHorizontal,
+        VideoThumbnailCountVertical, VideoThumbnailMaxWidth, VideoTimeFormat,
+        ImageThumbnailMaxHeight, FFMPEGPath, ImageMagickPath);
+
+      KeyCacheFile := Config.ReadString(KEY_CACHE_FILENAME);
+      KeyCache := TKeyCache.Create(KeyCacheFile);
+
+      BookmarksParserFilename := Config.ReadString(BOOKMARKS_FILE);
+      BookmarksParser := TBookmarksParser.Create(BookmarksParserFilename,
+        TEncoding.UTF8);
+
       DuplicateTree := TDuplicateTree.Create;
-      ConfigFile := TMemIniFile.Create(ConfigFilename, TEncoding.UTF8);
 
-      KeyCacheDatabase := TKeyCache.Create(ConfigFile.ReadString(ConfigKey,
-          'KeyCacheFilename', '.\key-cache.db3'));
-
-      Thumbnail := TThumbnail.Create(4, 4, 1024, '%.2d:%.2d:%.2d', 186,
-        ExePath + 'programs\ffmpeg\bin\',
-        ExePath + 'programs\ImageMagick\');
-
-      BookmarksParser := TBookmarksParser.Create
-        (ConfigFile.ReadString(ConfigKey, 'Bookmarks-File',
-          '.\bookmarks.dat'), TEncoding.UTF8);
-
-      TSiteBuilder.GetFileList(ExePath + 'data\content', '.csv', false, Files);
-
+      NewKeyName := Config.ReadString(NEW_KEY_NAME);
+      DataPath := Config.ReadString(DATA_PATH);
+      SitePath := Config.ReadString(SITE_PATH);
+      ThumbnailPath := Config.ReadString(THUMBNAIL_PATH);
+      ThumbnailExtension := Config.ReadString(THUMBNAIL_EXTENSION);
+      CRCPath := Config.ReadString(CRC_PATH);
       FileInfoTree := TFileInfoTree.Create;
-      FileInfoTree.LoadData(Files, Thumbnail, Thumbnail, KeyCacheDatabase,
-        BookmarksParser, ConfigFile.ReadString(ConfigKey, 'NewKeyName',
-          'New Keys'), ConfigFile.ReadString(ConfigKey, 'DataPath',
-          '.\data-files'), ConfigFile.ReadString(ConfigKey, 'SitePath',
-          '.\site'), ConfigFile.ReadString(ConfigKey,
-          'ThumbnailExtension', '.jpg'), ConfigFile.ReadString(ConfigKey,
-          'ThumbnailPath', 'Thumbnails'), ConfigFile.ReadString(ConfigKey,
-          'CRCPath', 'CRCs'), DuplicateTree);
+      FileInfoTree.LoadData(Files, Thumbnail, Thumbnail, KeyCache,
+        BookmarksParser, NewKeyName, DataPath, SitePath, ThumbnailExtension,
+        ThumbnailPath, CRCPath, DuplicateTree);
 
+      if not FileInfoTree.ContainsKey(Section) then
+      begin
+        raise Exception.CreateFmt('Section "%s" was not found!', [Section]);
+      end;
       for FileInfo in FileInfoTree[Section] do
       begin
-        SourceFile := ConfigFile.ReadString(ConfigKey, 'DataPath',
-          '.\data-files') + PathDelim + TFileInfo.SectionToPath
+        SourceFile := DataPath + PathDelim + TFileInfo.SectionToPath
           (FileInfo.Sections[0]) + PathDelim + FileInfo.Key.FileName;
         if FileInfo.Key.KeyType = USK then
         begin
@@ -138,12 +153,13 @@ begin
       end;
 
     finally
-      BookmarksParser.Free;
+      Config.Free;
       Files.Free;
-      ConfigFile.Free;
-      KeyCacheDatabase.Free;
       Thumbnail.Free;
+      KeyCache.Free;
+      BookmarksParser.Free;
       DuplicateTree.Free;
+      FileInfoTree.Free;
     end;
   except
     on E: Exception do

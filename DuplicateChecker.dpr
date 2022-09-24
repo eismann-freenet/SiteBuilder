@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ program DuplicateChecker;
 uses
   SysUtils,
   Classes,
-  CSVFile in 'CSVFile.pas',
   DuplicateEntry in 'DuplicateEntry.pas',
   DuplicateList in 'DuplicateList.pas',
   DuplicateTree in 'DuplicateTree.pas',
@@ -30,29 +29,15 @@ uses
   SiteBuilder in 'SiteBuilder.pas',
   Key in 'Key.pas',
   Thumbnail in 'Thumbnail.pas',
-  SystemCall in 'SystemCall.pas',
-  RegEx in 'RegEx.pas',
-  BookmarksParser in 'BookmarksParser.pas',
-  Changelog in 'Changelog.pas',
-  ChangelogEntry in 'ChangelogEntry.pas',
-  DuplicateEntryComparer in 'DuplicateEntryComparer.pas',
-  FileInfo in 'FileInfo.pas',
-  FileInfoComparer in 'FileInfoComparer.pas',
-  FileInfoList in 'FileInfoList.pas',
-  FileInfoTree in 'FileInfoTree.pas',
-  IndexPage in 'IndexPage.pas',
-  IndexPageComparer in 'IndexPageComparer.pas',
-  IndexPageList in 'IndexPageList.pas',
-  TemplateChangelog in 'TemplateChangelog.pas',
-  TemplateContent in 'TemplateContent.pas',
-  TemplateIndex in 'TemplateIndex.pas',
-  StringReplacer in 'StringReplacer.pas',
-  SiteEncoding in 'SiteEncoding.pas',
-  Sort in 'Sort.pas';
+  Config in 'Config.pas';
 {$R *.res}
 
 var
-  ExePath, DuplicateFile, CRC, OriginalKeyRaw, Key: string;
+  ConfigFile, DuplicateFile, CRC, Key: string;
+  KeyCacheFile, DuplicatePath, DuplicateFileExtension, VideoTimeFormat,
+    FFMPEGPath, ImageMagickPath: string;
+  VideoThumbnailCountHorizontal, VideoThumbnailCountVertical,
+    VideoThumbnailMaxWidth, ImageThumbnailMaxHeight: Integer;
   Files: TStringList;
   KeyCache: TKeyCache;
   DuplicateTree: TDuplicateTree;
@@ -60,117 +45,130 @@ var
   DuplicateEntry: TDuplicateEntry;
   Thumbnail: TThumbnail;
   KeyID, VideoLength: Integer;
-  OriginalKey: TKey;
   FoundDuplicate: Boolean;
   SimilarVideoLength: TIntegerArray;
+  Config: TConfig;
+
+procedure ShowKey(Key: string);
+var
+  OriginalKey: TKey;
+begin
+  OriginalKey := TKey.Create(Key);
+  try
+    TLogger.LogInfo(Format('Filename: %s', [OriginalKey.Filename]));
+    TLogger.LogInfo(Format('Key     : %s', [OriginalKey.Key]));
+  finally
+    OriginalKey.Free;
+  end;
+end;
 
 begin
+  Config := nil;
+  KeyCache := nil;
+  Files := nil;
+  DuplicateTree := nil;
+  Thumbnail := nil;
   try
-    FoundDuplicate := false;
-    ExePath := ExtractFilePath(ParamStr(0));
-    DuplicateFile := ParamStr(1);
-
-    if DuplicateFile = '' then
+    ConfigFile := ParamStr(1);
+    if ConfigFile = '' then
     begin
-      raise Exception.Create('Param 1 have to be a filename!');
+      raise Exception.Create
+        ('Parameter 1 have to be a configuration filename!');
     end;
 
+    DuplicateFile := ParamStr(2);
+    if DuplicateFile = '' then
+    begin
+      raise Exception.Create('Parameter 2 have to be a filename!');
+    end;
     if not FileExists(DuplicateFile) then
     begin
       raise Exception.CreateFmt('File "%s" is missing!', [DuplicateFile]);
     end;
 
-    TLogger.LogInfo(Format('Calc CRC for file "%s"...', [DuplicateFile]));
-    CRC := CalcFileCRC32(DuplicateFile);
-    TLogger.LogInfo(Format('CRC is "%s".', [CRC]));
-
-    KeyCache := TKeyCache.Create(ExePath + 'key-cache.db3');
     try
+      Config := TConfig.Create(ConfigFile);
+
+      KeyCacheFile := Config.ReadString(KEY_CACHE_FILENAME);
+      KeyCache := TKeyCache.Create(KeyCacheFile);
+
+      DuplicatePath := Config.ReadString(DUPLICATE_PATH);
+      DuplicateFileExtension := Config.ReadString(DUPLICATE_FILE_EXTENSION);
+      Files := TStringList.Create;
+      TSiteBuilder.GetFileList(DuplicatePath, DuplicateFileExtension, false,
+        Files);
+      DuplicateTree := TDuplicateTree.Create;
+      DuplicateTree.LoadData(Files);
+
+      VideoThumbnailCountHorizontal := Config.ReadInteger
+        (VIDEO_THUMBNAIL_COUNT_HORIZONTAL);
+      VideoThumbnailCountVertical := Config.ReadInteger
+        (VIDEO_THUMBNAIL_COUNT_VERTICAL);
+      VideoThumbnailMaxWidth := Config.ReadInteger(VIDEO_THUMBNAIL_MAX_WIDTH);
+      VideoTimeFormat := Config.ReadString(VIDEO_TIME_FORMAT);
+      ImageThumbnailMaxHeight := Config.ReadInteger(IMAGE_THUMBNAIL_MAX_HEIGHT);
+      FFMPEGPath := Config.ReadString(FFMPEG_PATH);
+      ImageMagickPath := Config.ReadString(IMAGEMAGICK_PATH);
+      Thumbnail := TThumbnail.Create(VideoThumbnailCountHorizontal,
+        VideoThumbnailCountVertical, VideoThumbnailMaxWidth, VideoTimeFormat,
+        ImageThumbnailMaxHeight, FFMPEGPath, ImageMagickPath);
+
+      FoundDuplicate := false;
+
+      TLogger.LogInfo(Format('Calc CRC for file "%s"...', [DuplicateFile]));
+      CRC := CalcFileCRC32(DuplicateFile);
+      TLogger.LogInfo(Format('CRC is "%s".', [CRC]));
 
       TLogger.LogInfo('Search for file in the database...');
       KeyID := KeyCache.GetKeyIDByCRC(CRC);
       if KeyID <> -1 then
       begin
-        OriginalKey := TKey.Create(KeyCache.GetKey(KeyID));
-        try
-          TLogger.LogInfo(Format('Filename: %s', [OriginalKey.Filename]));
-          TLogger.LogInfo(Format('Key     : %s', [OriginalKey.Key]));
-          FoundDuplicate := true;
-        finally
-          OriginalKey.Free;
-        end;
+        ShowKey(KeyCache.GetKey(KeyID));
+        FoundDuplicate := true;
       end;
 
       if not FoundDuplicate then
       begin
         TLogger.LogInfo('Search for file in duplicate-list...');
-        DuplicateTree := nil;
-        Files := nil;
-        try
-          Files := TStringList.Create;
-          TSiteBuilder.GetFileList(ExePath + 'data\duplicate', '.csv', false,
-            Files);
-          DuplicateTree := TDuplicateTree.Create;
-          DuplicateTree.LoadData(Files);
-          for Key in DuplicateTree.Keys do
+        for Key in DuplicateTree.Keys do
+        begin
+          DuplicateList := DuplicateTree[Key];
+          for DuplicateEntry in DuplicateList do
           begin
-            DuplicateList := DuplicateTree[Key];
-            for DuplicateEntry in DuplicateList do
+            if DuplicateEntry.CRC = CRC then
             begin
-              if DuplicateEntry.CRC = CRC then
-              begin
-                OriginalKey := TKey.Create(Key);
-                try
-                  TLogger.LogInfo(Format('Filename: %s', [OriginalKey.Filename])
-                    );
-                  TLogger.LogInfo(Format('Key     : %s', [OriginalKey.Key]));
-                  FoundDuplicate := true;
-                finally
-                  OriginalKey.Free;
-                end;
-              end;
+              ShowKey(Key);
+              FoundDuplicate := true;
             end;
           end;
-        finally
-          Files.Free;
-          DuplicateTree.Free;
         end;
       end;
 
       if not FoundDuplicate then
       begin
         TLogger.LogInfo('Search for similar file based on the video-length...');
-        Thumbnail := TThumbnail.Create(4, 4, 1024, '%.2d:%.2d:%.2d', 186,
-          ExePath + 'programs\ffmpeg\bin\', ExePath + 'programs\ImageMagick\');
-        try
-          VideoLength := Thumbnail.GetVideoLength(DuplicateFile);
-          if VideoLength = 0 then
+        VideoLength := Thumbnail.GetVideoLength(DuplicateFile);
+        if VideoLength = 0 then
+        begin
+          TLogger.LogInfo('No valid video-file.');
+        end
+        else
+        begin
+          SimilarVideoLength := KeyCache.GetSimilarVideoLength(VideoLength,
+            1000);
+          for KeyID in SimilarVideoLength do
           begin
-            TLogger.LogInfo('No valid video-file.');
-          end
-          else
-          begin
-            SimilarVideoLength := KeyCache.GetSimilarVideoLength(VideoLength,
-              1000);
-            for KeyID in SimilarVideoLength do
-            begin
-              OriginalKey := TKey.Create(KeyCache.GetKey(KeyID));
-              try
-                TLogger.LogInfo(Format('Filename: %s', [OriginalKey.Filename]));
-                TLogger.LogInfo(Format('Key     : %s', [OriginalKey.Key]));
-                TLogger.LogInfo('');
-              finally
-                OriginalKey.Free;
-              end;
-            end;
+            ShowKey(KeyCache.GetKey(KeyID));
+            TLogger.LogInfo('');
           end;
-        finally
-          Thumbnail.Free;
         end;
       end;
-
     finally
+      Config.Free;
       KeyCache.Free;
+      Files.Free;
+      DuplicateTree.Free;
+      Thumbnail.Free;
     end;
   except
     on E: Exception do

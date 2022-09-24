@@ -44,10 +44,9 @@
 			<DelphiCompile Include="ThumbnailMaker.dpr">
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
-			<DCCReference Include="CSVFile.pas"/>
 			<DCCReference Include="Logger.pas"/>
-			<DCCReference Include="RegEx.pas"/>
 			<DCCReference Include="Thumbnail.pas"/>
+			<DCCReference Include="Config.pas"/>
 			<BuildConfiguration Include="Basis">
 				<Key>Base</Key>
 			</BuildConfiguration>

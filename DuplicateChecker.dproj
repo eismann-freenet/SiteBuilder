@@ -44,7 +44,6 @@
 			<DelphiCompile Include="DuplicateChecker.dpr">
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
-			<DCCReference Include="CSVFile.pas"/>
 			<DCCReference Include="DuplicateEntry.pas"/>
 			<DCCReference Include="DuplicateList.pas"/>
 			<DCCReference Include="DuplicateTree.pas"/>
@@ -54,27 +53,7 @@
 			<DCCReference Include="SiteBuilder.pas"/>
 			<DCCReference Include="Key.pas"/>
 			<DCCReference Include="Thumbnail.pas"/>
-			<DCCReference Include="SystemCall.pas"/>
-			<DCCReference Include="RegEx.pas"/>
-			<DCCReference Include="BookmarksParser.pas"/>
-			<DCCReference Include="Changelog.pas"/>
-			<DCCReference Include="ChangelogEntry.pas"/>
-			<DCCReference Include="DuplicateEntryComparer.pas"/>
-			<DCCReference Include="FileInfo.pas"/>
-			<DCCReference Include="FileInfoComparer.pas"/>
-			<DCCReference Include="FileInfoList.pas"/>
-			<DCCReference Include="FileInfoTree.pas"/>
-			<DCCReference Include="IndexPage.pas"/>
-			<DCCReference Include="IndexPageComparer.pas"/>
-			<DCCReference Include="IndexPageList.pas"/>
-			<DCCReference Include="TemplateChangelog.pas"/>
-			<DCCReference Include="TemplateContent.pas"/>
-			<DCCReference Include="TemplateIndex.pas"/>
-			<DCCReference Include="StringReplacer.pas"/>
-			<DCCReference Include="SiteEncoding.pas"/>
-			<DCCReference Include="Sort.pas">
-				<Form>$R *.res</Form>
-			</DCCReference>
+			<DCCReference Include="Config.pas"/>
 			<BuildConfiguration Include="Basis">
 				<Key>Base</Key>
 			</BuildConfiguration>

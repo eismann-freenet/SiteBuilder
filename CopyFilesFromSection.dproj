@@ -45,17 +45,15 @@
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
 			<DCCReference Include="FileInfo.pas"/>
-			<DCCReference Include="FileInfoList.pas"/>
 			<DCCReference Include="FileInfoTree.pas"/>
 			<DCCReference Include="KeyCache.pas"/>
 			<DCCReference Include="Logger.pas"/>
 			<DCCReference Include="SiteBuilder.pas"/>
 			<DCCReference Include="Thumbnail.pas"/>
-			<DCCReference Include="DuplicateEntry.pas"/>
-			<DCCReference Include="DuplicateList.pas"/>
 			<DCCReference Include="DuplicateTree.pas"/>
 			<DCCReference Include="BookmarksParser.pas"/>
 			<DCCReference Include="Key.pas"/>
+			<DCCReference Include="Config.pas"/>
 			<BuildConfiguration Include="Basis">
 				<Key>Base</Key>
 			</BuildConfiguration>
