@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -162,7 +162,7 @@ begin
   Result := True;
   for OneFile in Files do
   begin
-    if not DeleteFile(OneFile) then
+    if FileExists(OneFile) and not DeleteFile(OneFile) then
     begin
       Result := False;
     end;
