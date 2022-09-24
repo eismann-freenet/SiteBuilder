@@ -171,9 +171,9 @@ begin
 
     Output.SaveToFile(Filename, TSiteEncoding.Encoding);
   finally
-    FreeAndNil(LastTitleParts);
-    FreeAndNil(TitleParts);
-    FreeAndNil(Output);
+    LastTitleParts.Free;
+    TitleParts.Free;
+    Output.Free;
   end;
 end;
 

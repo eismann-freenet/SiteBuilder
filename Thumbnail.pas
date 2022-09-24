@@ -1,5 +1,5 @@
 {
-  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -183,8 +183,8 @@ begin
       DeleteFile(SourceFilename);
     end;
   finally
-    FreeAndnil(FilesToDelete);
-    FreeAndnil(RegEx);
+    FilesToDelete.Free;
+    RegEx.Free;
   end;
   if not FileExists(OutputFilename) then
   begin
@@ -255,8 +255,8 @@ begin
       (StrToInt(LengthParts[1]) * 60000) + Trunc
       (StrToFloat(LengthParts[2]) * 1000);
   finally
-    FreeAndnil(RegEx);
-    FreeAndnil(LengthParts);
+    RegEx.Free;
+    LengthParts.Free;
   end;
 end;
 

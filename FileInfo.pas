@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -423,9 +423,9 @@ begin
         raise Exception.CreateFmt('No content found in file "%s"!', [Filename]);
       end;
     finally
-      FreeAndNil(Stream);
-      FreeAndNil(Parts);
-      FreeAndNil(FileContent);
+      Stream.Free;
+      Parts.Free;
+      FileContent.Free;
     end;
   end;
 end;
