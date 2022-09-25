@@ -104,7 +104,7 @@ var
   VideoThumbnailCountHorizontal, VideoThumbnailCountVertical,
     VideoThumbnailMaxWidth, VideoBigThumbnailCountHorizontal,
     VideoBigThumbnailCountVertical, VideoBigThumbnailMaxWidth,
-    ImageThumbnailMaxHeight: Integer;
+    ImageThumbnailMaxHeight, ThumbnailQuality: Integer;
   VideoTimeFormat, FFMPEGPath, ImageMagickPath, KeyCacheFilename,
     BookmarksParserFilename: string;
   Config: TConfig;
@@ -124,17 +124,18 @@ begin
       (VIDEO_BIG_THUMBNAIL_MAX_WIDTH);
     VideoTimeFormat := Config.ReadString(VIDEO_TIME_FORMAT);
     ImageThumbnailMaxHeight := Config.ReadInteger(IMAGE_THUMBNAIL_MAX_HEIGHT);
+    ThumbnailQuality := Config.ReadInteger(THUMBNAIL_QUALITY);
 
     FFMPEGPath := Config.ReadString(FFMPEG_PATH);
     ImageMagickPath := Config.ReadString(IMAGEMAGICK_PATH);
 
     FThumbnail := TThumbnail.Create(VideoThumbnailCountHorizontal,
       VideoThumbnailCountVertical, VideoThumbnailMaxWidth, VideoTimeFormat,
-      ImageThumbnailMaxHeight, FFMPEGPath, ImageMagickPath);
+      ImageThumbnailMaxHeight, ThumbnailQuality, FFMPEGPath, ImageMagickPath);
     FBigThumbnail := TThumbnail.Create(VideoBigThumbnailCountHorizontal,
       VideoBigThumbnailCountVertical, VideoBigThumbnailMaxWidth,
-      VideoTimeFormat, ImageThumbnailMaxHeight, FFMPEGPath,
-      ImageMagickPath);
+      VideoTimeFormat, ImageThumbnailMaxHeight,
+      ThumbnailQuality, FFMPEGPath, ImageMagickPath);
 
     KeyCacheFilename := Config.ReadString(KEY_CACHE_FILENAME);
     FKeyCacheDatabase := TKeyCache.Create(KeyCacheFilename);

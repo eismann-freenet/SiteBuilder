@@ -28,7 +28,7 @@ var
   ConfigFile, VideoFile: string;
   VideoTimeFormat, FFMPEGPath, ImageMagickPath, ThumbnailExtension: string;
   VideoThumbnailCountHorizontal, VideoThumbnailCountVertical,
-    VideoThumbnailMaxWidth, ImageThumbnailMaxHeight: Integer;
+    VideoThumbnailMaxWidth, ImageThumbnailMaxHeight, ThumbnailQuality: Integer;
   Thumbnail: TThumbnail;
   Config: TConfig;
   I: Integer;
@@ -60,12 +60,13 @@ begin
       VideoThumbnailMaxWidth := Config.ReadInteger(VIDEO_THUMBNAIL_MAX_WIDTH);
       VideoTimeFormat := Config.ReadString(VIDEO_TIME_FORMAT);
       ImageThumbnailMaxHeight := Config.ReadInteger(IMAGE_THUMBNAIL_MAX_HEIGHT);
+      ThumbnailQuality := Config.ReadInteger(THUMBNAIL_QUALITY);
       FFMPEGPath := Config.ReadString(FFMPEG_PATH);
       ImageMagickPath := Config.ReadString(IMAGEMAGICK_PATH);
       ThumbnailExtension := Config.ReadString(THUMBNAIL_EXTENSION);
       Thumbnail := TThumbnail.Create(VideoThumbnailCountHorizontal,
         VideoThumbnailCountVertical, VideoThumbnailMaxWidth, VideoTimeFormat,
-        ImageThumbnailMaxHeight, FFMPEGPath, ImageMagickPath);
+        ImageThumbnailMaxHeight, ThumbnailQuality, FFMPEGPath, ImageMagickPath);
 
       for I := 2 to ParamCount do
       begin

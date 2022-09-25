@@ -37,7 +37,7 @@ var
   KeyCacheFile, DuplicatePath, DuplicateFileExtension, VideoTimeFormat,
     FFMPEGPath, ImageMagickPath: string;
   VideoThumbnailCountHorizontal, VideoThumbnailCountVertical,
-    VideoThumbnailMaxWidth, ImageThumbnailMaxHeight: Integer;
+    VideoThumbnailMaxWidth, ImageThumbnailMaxHeight, ThumbnailQuality: Integer;
   Files: TStringList;
   KeyCache: TKeyCache;
   DuplicateTree: TDuplicateTree;
@@ -107,11 +107,12 @@ begin
       VideoThumbnailMaxWidth := Config.ReadInteger(VIDEO_THUMBNAIL_MAX_WIDTH);
       VideoTimeFormat := Config.ReadString(VIDEO_TIME_FORMAT);
       ImageThumbnailMaxHeight := Config.ReadInteger(IMAGE_THUMBNAIL_MAX_HEIGHT);
+      ThumbnailQuality := Config.ReadInteger(THUMBNAIL_QUALITY);
       FFMPEGPath := Config.ReadString(FFMPEG_PATH);
       ImageMagickPath := Config.ReadString(IMAGEMAGICK_PATH);
       Thumbnail := TThumbnail.Create(VideoThumbnailCountHorizontal,
         VideoThumbnailCountVertical, VideoThumbnailMaxWidth, VideoTimeFormat,
-        ImageThumbnailMaxHeight, FFMPEGPath, ImageMagickPath);
+        ImageThumbnailMaxHeight, ThumbnailQuality, FFMPEGPath, ImageMagickPath);
 
       FoundDuplicate := false;
 

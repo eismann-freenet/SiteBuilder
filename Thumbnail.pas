@@ -29,6 +29,7 @@ type
     FVideoThumbnailCountVertical: Integer;
     FVideoThumbnailMaxWidth: Integer;
     FImageThumbnailMaxHeight: Integer;
+    FThumbnailQuality: Integer;
     FFFMPEG: string;
     FConvert: string;
     FMontage: string;
@@ -46,9 +47,8 @@ type
   public
     constructor Create(const VideoThumbnailCountHorizontal,
       VideoThumbnailCountVertical, VideoThumbnailMaxWidth: Integer;
-      const VideoTimeFormat: string;
-      const ImageThumbnailMaxHeight: Integer; const FFMPEGPath,
-      ImageMagickPath: string);
+      const VideoTimeFormat: string; const ImageThumbnailMaxHeight,
+      ThumbnailQuality: Integer; const FFMPEGPath, ImageMagickPath: string);
     destructor Destroy; override;
 
     function GetVideoLength(const Filename: string): Integer;
@@ -81,7 +81,7 @@ const
   ScreenShotEditCommand =
     '%s "%s" -resize %sx -font "Arial" -fill white -undercolor "#00000080" -gravity SouthEast -annotate +5+5 %s "%s"';
 
-  MontageCommand = '%s -tile %sx%s -geometry +0+0 %s "%s"';
+  MontageCommand = '%s -tile %sx%s -geometry +0+0 -quality %s %s "%s"';
 
   VideoLengthCommand = '%s -i "%s"';
   VideoLengthPattern = 'Duration: (.*?),';
@@ -92,7 +92,7 @@ const
   VideoLengthSeparator = ':';
   VideoLengthDecimalSeparator = '.';
 
-  ImageThumbnailCommand = '%s "%s" -thumbnail x%s "%s"';
+  ImageThumbnailCommand = '%s "%s" -thumbnail x%s -quality %s "%s"';
 
   InternalImageExt = '.png';
 
@@ -103,7 +103,8 @@ procedure TThumbnail.GenerateImageThumbnail(const Filename,
 begin
   DeleteFile(OutputFilename);
   ExecuteWait(Format(ImageThumbnailCommand, [FConvert, Filename,
-      IntToStr(FImageThumbnailMaxHeight), OutputFilename]));
+      IntToStr(FImageThumbnailMaxHeight), IntToStr(FThumbnailQuality),
+      OutputFilename]));
 end;
 
 procedure TThumbnail.GenerateVideoThumbnail(const Filename,
@@ -170,7 +171,8 @@ begin
     end;
     ExecuteWait(Format(MontageCommand, [FMontage,
         IntToStr(FVideoThumbnailCountHorizontal),
-        IntToStr(FVideoThumbnailCountVertical), AllFiles, OutputFilename]));
+        IntToStr(FVideoThumbnailCountVertical), IntToStr(FThumbnailQuality),
+        AllFiles, OutputFilename]));
 
     if not DeleteFiles(FilesToDelete) then
     begin
@@ -269,13 +271,14 @@ end;
 
 constructor TThumbnail.Create(const VideoThumbnailCountHorizontal,
   VideoThumbnailCountVertical, VideoThumbnailMaxWidth: Integer;
-  const VideoTimeFormat: string; const ImageThumbnailMaxHeight: Integer;
-  const FFMPEGPath, ImageMagickPath: string);
+  const VideoTimeFormat: string; const ImageThumbnailMaxHeight,
+  ThumbnailQuality: Integer; const FFMPEGPath, ImageMagickPath: string);
 begin
   FVideoThumbnailCountHorizontal := VideoThumbnailCountHorizontal;
   FVideoThumbnailCountVertical := VideoThumbnailCountVertical;
   FVideoThumbnailMaxWidth := VideoThumbnailMaxWidth;
   FImageThumbnailMaxHeight := ImageThumbnailMaxHeight;
+  FThumbnailQuality := ThumbnailQuality;
   FOneThumbnailWidth := IntToStr(FVideoThumbnailMaxWidth div
       VideoThumbnailCountHorizontal);
   FVideoTimeFormat := VideoTimeFormat;
