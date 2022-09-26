@@ -23,7 +23,7 @@ uses
 
 procedure WriteIndex(const Filename, ChangelogFile, SiteKey, SiteName,
   SiteAuthor, SiteDescription, SiteKeywords: string; const MaxEdition: Integer;
-  const Pages: TIndexPageList);
+  const Pages: TIndexPageList; const TrimHTML: Boolean);
 
 implementation
 
@@ -60,7 +60,7 @@ end;
 
 procedure WriteIndex(const Filename, ChangelogFile, SiteKey, SiteName,
   SiteAuthor, SiteDescription, SiteKeywords: string; const MaxEdition: Integer;
-  const Pages: TIndexPageList);
+  const Pages: TIndexPageList; const TrimHTML: Boolean);
 var
   Output, LastTitleParts, TitleParts: TStringList;
   Page, NextPage: TIndexPage;
@@ -168,6 +168,11 @@ begin
     Output.Add('');
     Output.Add('</body>');
     Output.Add('</html>');
+
+    if TrimHTML then
+    begin
+      TStringReplacer.TrimStringList(Output);
+    end;
 
     Output.SaveToFile(Filename, TSiteEncoding.Encoding);
   finally

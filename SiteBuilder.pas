@@ -73,6 +73,8 @@ type
     FDuplicateTree: TDuplicateTree;
     FFileInfoTree: TFileInfoTree;
 
+    FTrimHTML: Boolean;
+
     procedure ProcessSourceFiles;
     procedure GetPages(var Pages: TIndexPageList);
     procedure GetFiles(const Page: string; var Files: TFileInfoList);
@@ -180,6 +182,8 @@ begin
 
     BookmarksParserFilename := Config.ReadString(BOOKMARKS_FILE);
 
+    FTrimHTML := Config.ReadBoolean(TRIM_HTML);
+
     FDuplicateTree := TDuplicateTree.Create;
     FFileInfoTree := TFileInfoTree.Create;
 
@@ -227,7 +231,7 @@ begin
 
   WriteChangelog(FSitePath + PathDelim + FChangelogFilenameSite +
       FOutputExtension, FIndexFilename + FOutputExtension, FChangelog,
-    FSiteAuthor, FSiteDescription, FSiteKeywords);
+    FSiteAuthor, FSiteDescription, FSiteKeywords, FTrimHTML);
 
   Pages := TIndexPageList.Create;
   GetPages(Pages);
@@ -235,7 +239,7 @@ begin
     WriteIndex(FSitePath + PathDelim + FIndexFilename + FOutputExtension,
       FChangelogFilenameSite + FOutputExtension, FSiteKey, FSiteName,
       FSiteAuthor, FSiteDescription, FSiteKeywords, FChangelog.MaxEdition,
-      Pages);
+      Pages, FTrimHTML);
 
     FullCRCPath := FSitePath + PathDelim + FCRCPath + PathDelim;
     for Page in Pages do
@@ -248,7 +252,7 @@ begin
         InfoContent, FIndexFilename + FOutputExtension, Files,
         FOutputExtension, FSiteKey, FCRCPath + TFileInfo.PathDelimiterSite,
         CRCFile, SFVFile, FChangelog.MaxEdition, FSiteAuthor, FSiteDescription,
-        FSiteKeywords);
+        FSiteKeywords, FTrimHTML);
       Files.GenerateCRCFile(FullCRCPath + CRCFile, CRC);
       Files.GenerateCRCFile(FullCRCPath + SFVFile, SFV);
     end;

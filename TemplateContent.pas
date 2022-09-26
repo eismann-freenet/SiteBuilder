@@ -25,7 +25,7 @@ procedure WriteContent(const Section, Filename, Title, InfoContent,
   IndexFilename: string; const Files: TFileInfoList;
   const OutputExtension, SiteKey, CRCPath, CRCFile, SFVFile: string;
   const MaxEdition: Integer; const SiteAuthor, SiteDescription,
-  SiteKeywords: string);
+  SiteKeywords: string; const TrimHTML: Boolean);
 
 implementation
 
@@ -37,7 +37,7 @@ procedure WriteContent(const Section, Filename, Title, InfoContent,
   IndexFilename: string; const Files: TFileInfoList;
   const OutputExtension, SiteKey, CRCPath, CRCFile, SFVFile: string;
   const MaxEdition: Integer; const SiteAuthor, SiteDescription,
-  SiteKeywords: string);
+  SiteKeywords: string; const TrimHTML: Boolean);
 var
   Key, KeyFilename, OtherSection: string;
   DuplicateListHasAudioTracks: Boolean;
@@ -348,6 +348,11 @@ begin
     Output.Add('  </div>');
     Output.Add('</body>');
     Output.Add('</html>');
+
+    if TrimHTML then
+    begin
+      TStringReplacer.TrimStringList(Output);
+    end;
 
     Output.SaveToFile(Filename, TSiteEncoding.Encoding);
   finally

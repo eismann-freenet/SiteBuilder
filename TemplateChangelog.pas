@@ -23,16 +23,16 @@ uses
 
 procedure WriteChangelog(const Filename, IndexFilename: string;
   const Changelog: TChangelog; const SiteAuthor, SiteDescription,
-  SiteKeywords: string);
+  SiteKeywords: string; const TrimHTML: Boolean);
 
 implementation
 
 uses
-  Classes, SysUtils, ChangelogEntry, HTTPUtil, SiteEncoding;
+  Classes, SysUtils, ChangelogEntry, HTTPUtil, SiteEncoding, StringReplacer;
 
 procedure WriteChangelog(const Filename, IndexFilename: string;
   const Changelog: TChangelog; const SiteAuthor, SiteDescription,
-  SiteKeywords: string);
+  SiteKeywords: string; const TrimHTML: Boolean);
 var
   Output: TStringList;
   ChangelogEntry: TChangelogEntry;
@@ -86,6 +86,11 @@ begin
     Output.Add('');
     Output.Add('</body>');
     Output.Add('</html>');
+
+    if TrimHTML then
+    begin
+      TStringReplacer.TrimStringList(Output);
+    end;
 
     Output.SaveToFile(Filename, TSiteEncoding.Encoding);
   finally

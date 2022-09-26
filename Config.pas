@@ -32,6 +32,7 @@ type
     destructor Destroy; override;
     function ReadString(Ident: string): string;
     function ReadInteger(Ident: string): Integer;
+    function ReadBoolean(Ident: string): Boolean;
   end;
 
 const
@@ -74,6 +75,7 @@ const
   SITE_DESCRIPTION = 'SiteDescription';
   SITE_KEYWORDS = 'SiteKeywords';
   BOOKMARKS_FILE = 'BookmarksFile';
+  TRIM_HTML = 'TrimHTML';
 
 implementation
 
@@ -106,6 +108,11 @@ end;
 function TConfig.ReadInteger(Ident: string): Integer;
 begin
   Result := FConfigFile.ReadInteger(ConfigKey, Ident, 0);
+end;
+
+function TConfig.ReadBoolean(Ident: string): Boolean;
+begin
+  Result := FConfigFile.ReadBool(ConfigKey, Ident, false);
 end;
 
 end.

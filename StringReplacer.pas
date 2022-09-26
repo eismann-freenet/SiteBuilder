@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ unit StringReplacer;
 interface
 
 uses
-  Generics.Collections, PerlRegEx, Key;
+  Generics.Collections, Classes, PerlRegEx, Key;
 
 type
   TStringReplacer = class
@@ -48,6 +48,7 @@ type
     class function URLDecode(const Value: string): string;
     class function URLEncode(const Value: string): string;
     class function FormatKey(Value: TKey; const Description: string): string;
+    class procedure TrimStringList(List: TStringList);
   end;
 
 implementation
@@ -313,6 +314,20 @@ begin
       // is replaced by a transliteration to a latin-character.
       Result := Result + '%';
       Result := Result + AnsiLowerCase(IntToHex(Byte(Value[I]), 2));
+    end;
+  end;
+end;
+
+class procedure TStringReplacer.TrimStringList(List: TStringList);
+var
+  I: Integer;
+begin
+  for I := List.Count - 1 downto 0 do
+  begin
+    List[I] := Trim(List[I]);
+    if List[I] = '' then
+    begin
+      List.Delete(I);
     end;
   end;
 end;
