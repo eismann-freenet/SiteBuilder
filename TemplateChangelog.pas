@@ -43,16 +43,14 @@ begin
     Output.Add('<html lang="en">');
     Output.Add('<head>');
     Output.Add(
-      '  <meta http-equiv="content-type" content="text/html; charset=utf-8" />'
-      );
+      '  <meta http-equiv="content-type" content="text/html; charset=utf-8">');
     Output.Add('  <meta name="author" content="' + HTMLEscape(SiteAuthor)
-        + '" />');
+        + '">');
     Output.Add('  <meta name="description" content="' + HTMLEscape
-        (SiteDescription) + '" />');
+        (SiteDescription) + '">');
     Output.Add('  <meta name="keywords" content="' + HTMLEscape(SiteKeywords)
-        + '" />');
-    Output.Add(
-      '  <link rel="stylesheet" type="text/css" media="all" href="design.css" />');
+        + '">');
+    Output.Add('  <link rel="stylesheet" href="design.css">');
     Output.Add('  <title>Changelog</title>');
     Output.Add('</head>');
     Output.Add('<body>');

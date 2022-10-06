@@ -213,7 +213,7 @@ begin
   if Value.HasActiveLink then
   begin
     Result := Result + '<img src="/' + Value.Key + 'activelink.png" alt="' +
-      HTMLEscape(Description) + '" width="108" height="36" />';
+      HTMLEscape(Description) + '" width="108" height="36">';
   end
   else
   begin
@@ -224,7 +224,7 @@ end;
 
 class function TStringReplacer.NL2BR(const Value: string): string;
 const
-  BR = '<br />';
+  BR = '<br>';
 begin
   Result := StringReplace(Value, #13, BR, [rfReplaceAll]);
 end;

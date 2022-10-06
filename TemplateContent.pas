@@ -53,16 +53,14 @@ begin
     Output.Add('<html lang="en">');
     Output.Add('<head>');
     Output.Add(
-      '  <meta http-equiv="content-type" content="text/html; charset=utf-8" />'
-      );
+      '  <meta http-equiv="content-type" content="text/html; charset=utf-8">');
     Output.Add('  <meta name="author" content="' + HTMLEscape(SiteAuthor)
-        + '" />');
+        + '">');
     Output.Add('  <meta name="description" content="' + HTMLEscape
-        (SiteDescription) + '" />');
+        (SiteDescription) + '">');
     Output.Add('  <meta name="keywords" content="' + HTMLEscape(SiteKeywords)
-        + '" />');
-    Output.Add(
-      '  <link rel="stylesheet" type="text/css" media="all" href="design.css" />');
+        + '">');
+    Output.Add('  <link rel="stylesheet" href="design.css">');
     Output.Add('  <title>' + HTMLEscape(Title) + '</title>');
     Output.Add('</head>');
     Output.Add('<body>');
@@ -88,7 +86,7 @@ begin
     Output.Add(
       '    <dd><input id="crc-file" type="text" readonly="readonly" value="' +
         SiteKey + IntToStr(MaxEdition) + '/' + TStringReplacer.URLEncode
-        (CRCPath + CRCFile) + '" /><br />');
+        (CRCPath + CRCFile) + '"><br>');
     Output.Add('    <a href="' + TStringReplacer.URLEncode(CRCPath + CRCFile)
         + '?type=text/plain">' + HTMLEscape(CRCFile) + '</a></dd>');
     Output.Add('');
@@ -97,7 +95,7 @@ begin
     Output.Add(
       '    <dd><input id="sfv-file" type="text" readonly="readonly" value="' +
         SiteKey + IntToStr(MaxEdition) + '/' + TStringReplacer.URLEncode
-        (CRCPath + SFVFile) + '" /><br />');
+        (CRCPath + SFVFile) + '"><br>');
     Output.Add('    <a href="' + TStringReplacer.URLEncode(CRCPath + SFVFile)
         + '?type=text/plain">' + HTMLEscape(SFVFile) + '</a></dd>');
     Output.Add('');
@@ -148,7 +146,7 @@ begin
                 + '</a>';
               if J < Sections.Count - 1 then
               begin
-                Output.Add(OtherSection + '<br />');
+                Output.Add(OtherSection + '<br>');
               end
               else
               begin
@@ -289,7 +287,7 @@ begin
         Output.Add('    <dt><label for="key-' + FileInfo.Identifier +
             '">Key:</label></dt>');
         Output.Add('    <dd><input id="key-' + FileInfo.Identifier +
-            '" type="text" readonly="readonly" value="' + Key + '" /></dd>');
+            '" type="text" readonly="readonly" value="' + Key + '"></dd>');
         Output.Add('');
         Output.Add('    <dt>Download:</dt>');
         Output.Add('    <dd><a href="/' + Key + '">' + HTMLEscape(KeyFilename)
@@ -309,7 +307,7 @@ begin
                 + '" alt="thumbnail of the file ' + HTMLEscape(KeyFilename)
                 + '" width="' + IntToStr(FileInfo.ThumbnailWidth)
                 + '" height="' + IntToStr(FileInfo.ThumbnailHeight)
-                + '" /></a>');
+                + '"></a>');
           end
           else
           begin
@@ -318,14 +316,14 @@ begin
                 +
                 '" alt="thumbnail of the file ' + HTMLEscape(KeyFilename)
                 + '" width="' + IntToStr(FileInfo.ThumbnailWidth)
-                + '" height="' + IntToStr(FileInfo.ThumbnailHeight) + '" />');
+                + '" height="' + IntToStr(FileInfo.ThumbnailHeight) + '">');
           end;
           Output.Add('  </div>');
         end;
       end;
 
       Output.Add('');
-      Output.Add('  <hr />');
+      Output.Add('  <hr>');
     end;
 
     Output.Add('');
