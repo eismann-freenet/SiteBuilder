@@ -1,353 +1,194 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="author" content="eismann (eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs)" />
-  <link rel="stylesheet" type="text/css" media="all" href="design.css" />
-  <title>Read Me</title>
-</head>
-<body>
-  <h1>Read Me</h1>
+# SiteBuilder
 
-  <h2>Preparation for the build</h2>
+SiteBuilder is a tool to generate a freesite based on keys stored in CSV files. My freesite [Collection](http://localhost:8888/USK@aOuGVQTefnmtK7bsTNZzQEBL3ah00LZggreGuNMG7lg,FBBMoVkxtEdXNj1bjBvopBof7aQugbqf4tV4Ti0~pIU,AQACAAE/collection/73/) [^2] was generated using SiteBuilder.
 
-  <p>
-    SiteBuilder can be build with Embarcadero RAD Studio. It has been successfully build with Embarcadero RAD Studio 2010 Architect and Embarcadero RAD Studio XE7 Architect.
-  </p>
+Some of the features:
 
-  <p>
-    If you have Embarcadero RAD Studio 2010 Architect (or a newer version) already installed, you can skip this step. Everyone else should download the iso-image <a href="http://altd.embarcadero.com/download/radstudio/xe7/delphicbuilder_xe7_win.iso"><code>delphicbuilder_xe7_win.iso</code></a> of Embarcadero RAD Studio XE7 Architect. You also need a license to install and use Embarcadero RAD Studio. A free license for 30 days can be obtained from <a href="https://downloads.embarcadero.com/free/rad_studio">downloads.embarcadero.com/free/rad_studio</a>. Mount the iso-image and install Embarcadero RAD Studio with your (free) license.
-  </p>
+- Automatic generation of a complete freesite. You just need some keys, which you want to share.
+- Fully configurable by a INI file and the CSV files.
+- Automatic generation of thumbnails.
+- Automatic generation of CRC and SFV files.
 
-  <h2 id="build">Build</h2>
+SiteBuilder is bundled with some very handy programs:
 
-  <p>
-    After the installation of Embarcadero RAD Studio just open <code>SiteBuilderMain.dpr</code> or <code>SiteBuilderMain.dproj</code> and press the Play-Button.
-  </p>
+| Program              | Description                                                                                                         |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| SiteBuilder          | See above                                                                                                           |
+| CopyFilesFromSection | Copy all files of a section to a folder                                                                             |
+| DuplicateChecker     | Checks if a file is already on the freesite. It also looks for known duplicate files and try to find similar videos |
+| ThumbnailMaker       | Generate thumbnails of videos                                                                                       |
 
-  <h2>Install</h2>
+## Terminology
 
-  <p>
-    After the build of SiteBuilder you need some files to run SiteBuilder:
-  </p>
+- A **section** is used to group files into pages. SiteBuilder mirrors your existing directory structure for the usage on the freesite. A full filename is split into `DataPath`, a section and the key. The key correspondences to a existing file, the section is one or more sub folders and the `DataPath` is the remaining part of the full filename. Each key can have multiple sections such that the same key can appear on multiple pages. The first section is the real location of a file.
+- **Thumbnails** are reduced-size versions of pictures or videos. For images the thumbnail is always a smaller version of the original image. For videos several frames are extracted, shrinked and added to one image. Normal thumbnails consists of 4 frames per video.
+- **Big thumbnails** are normal thumbnails, but with more images, usually consist of 16 frames per video. They will be shown if the user clicks on the thumbnail.
 
-  <ul>
-    <li><code>SiteBuilderMain.exe</code>, which has been build (see chapter <a href="#build">Build</a>).</li>
-    <li><code>sqlite3.dll</code>, for the database-access (included in the archive).</li>
-    <li><code>Options.ini</code>, with your configuration (see chapter <a href="#configuration">Configuration</a>).</li>
-  </ul>
+## Requirements
 
-  <p>
-    You also need FFmpeg and ImageMagick to generate thumbnails. Download the static build of FFmpeg from <a href="http://ffmpeg.zeranoe.com/builds/">ffmpeg.zeranoe.com/builds/</a> and the portable version of ImageMagick from <a href="http://www.imagemagick.org/script/binary-releases.php">www.imagemagick.org/script/binary-releases.php</a>. Extract both to a directory of your choice. You'll need them in the next step.
-  </p>
+- [Embarcadero RAD Studio](https://www.embarcadero.com/products/rad-studio) 2010 Architect
+- [FFmpeg](https://ffmpeg.org/), (binary release for Windows)
+- [ImageMagick](https://imagemagick.org/), (binary release for Windows)
+- [Freenet](https://freenetproject.org/)
 
-  <h2 id="configuration">Configuration</h2>
+## Build
 
-  <p>
-    SiteBuilder can be configured in many different ways. The main configuration can be found in the file <code>Options.ini</code>. The templates for html-pages can be found in the files named <code>Template*.pas</code> and finally you can also customize SiteBuilder by changing the source-code.
-  </p>
+Pick a program you want to build, open one of the listed project files and press the "Play" button.
 
-  <h3>Ini-File</h3>
+| Program              | Project files                                               |
+| -------------------- | ----------------------------------------------------------- |
+| SiteBuilder          | `SiteBuilderMain.dpr` and `SiteBuilderMain.dproj`           |
+| CopyFilesFromSection | `CopyFilesFromSection.dpr` and `CopyFilesFromSection.dproj` |
+| DuplicateChecker     | `DuplicateChecker.dpr` and `DuplicateChecker.dproj`         |
+| ThumbnailMaker       | `ThumbnailMaker.dpr` and `ThumbnailMaker.dproj`             |
 
-  <p>
-    The main configuration of SiteBuilder is stored in the ini-file <code>Options.ini</code> within the section &quot;SiteBuilder&quot;. Per default ini-files have a default-value for each key. SiteBuilder uses the default-value &quot;&quot; (empty-string) for strings and zero for all numbers. The configuration is explained in the following table.
-  </p>
+## Additional files
 
-  <table border="1">
-    <thead>
-      <tr>
-        <td>Key</td>
-        <td>Type</td>
-        <td>Example</td>
-        <td>Description</td>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>VideoBigThumbnailCountHorizontal</td>
-        <td>Number</td>
-        <td>4</td>
-        <td>Count of screenshots in a row of a big thumbnail of a video.</td>
-      </tr>
-      <tr>
-        <td>VideoBigThumbnailCountVertical</td>
-        <td>Number</td>
-        <td>4</td>
-        <td>Count of screenshots in a column of a big thumbnail of a video.</td>
-      </tr>
-      <tr>
-        <td>VideoBigThumbnailMaxWidth</td>
-        <td>Number</td>
-        <td>1024</td>
-        <td>Total width in pixel of a big thumbnail of a video. The width of a single screenshot is <var>VideoBigThumbnailMaxWidth</var> / <var>VideoBigThumbnailCountVertical</var>.</td>
-      </tr>
-      <tr>
-        <td>VideoThumbnailCountHorizontal</td>
-        <td>Number</td>
-        <td>4</td>
-        <td>Count of screenshots in a row of each video.</td>
-      </tr>
-      <tr>
-        <td>VideoThumbnailCountVertical</td>
-        <td>Number</td>
-        <td>1</td>
-        <td>Count of screenshots in a column of each video.</td>
-      </tr>
-      <tr>
-        <td>VideoThumbnailMaxWidth</td>
-        <td>Number</td>
-        <td>992</td>
-        <td>Total width in pixel of the thumbnail of a video. The width of a single screenshot is <var>VideoThumbnailMaxWidth</var> / <var>VideoThumbnailCountVertical</var>.</td>
-      </tr>
-      <tr>
-        <td>VideoTimeFormat</td>
-        <td>String</td>
-        <td>%.2d:%.2d:%.2d</td>
-        <td>Display format of the timestamp in each screenshot. More details how to change the format-string can be found at <a href="http://docwiki.embarcadero.com/Libraries/XE7/en/System.SysUtils.Format">docwiki.embarcadero.com/Libraries/XE7/en/System.SysUtils.Format</a>.</td>
-      </tr>
-      <tr>
-        <td>ImageThumbnailMaxHeight</td>
-        <td>Number</td>
-        <td>186</td>
-        <td>Maximum height of the thumbnail of an image.</td>
-      </tr>
-      <tr>
-        <td>FFmpegPath</td>
-        <td>String</td>
-        <td>.\programs\FFmpeg\bin\</td>
-        <td>Path to the bin-folder of FFmpeg. This is the path where <code>FFmpeg.exe</code> is located.</td>
-      </tr>
-      <tr>
-        <td>ImageMagickPath</td>
-        <td>String</td>
-        <td>.\programs\ImageMagick\</td>
-        <td>Path to the bin-folder of ImageMagick. This is the path where <code>convert.exe</code> and <code>montage.exe</code> are located.</td>
-      </tr>
-      <tr>
-        <td>KeyCacheFilename</td>
-        <td>String</td>
-        <td>.\key-cache.db3</td>
-        <td>Filename of the SQLite-Database of SiteBuilder. The database is used to cache various information like file size or length of a video.</td>
-      </tr>
-      <tr>
-        <td>SourcePath</td>
-        <td>String</td>
-        <td>.\data\content</td>
-        <td>Folder of the source-files for SiteBuilder. Place your <abbr title="Comma-Separated Values">CSV</abbr>-Files with the keys here. The structure of the <abbr title="Comma-Separated Values">CSV</abbr>-Files is explained in the chapter <a href="#data-files">Data-Files</a>.</td>
-      </tr>
-      <tr>
-        <td>SourceFileExtension</td>
-        <td>String</td>
-        <td>.csv</td>
-        <td>Filename extension of the source-files.</td>
-      </tr>
-      <tr>
-        <td>ChangelogFilename</td>
-        <td>String</td>
-        <td>.\data\Changelog.csv</td>
-        <td>Filename of the Changelog-File. The structure of this file is explained in the chapter <a href="#data-files">Data-Files</a>.</td>
-      </tr>
-      <tr>
-        <td>DataPath</td>
-        <td>String</td>
-        <td>.\data-files</td>
-        <td>This is the folder, where SiteBuilder looks for the data-files.</td>
-      </tr>
-      <tr>
-        <td>InfoFilename</td>
-        <td>String</td>
-        <td>Info.txt</td>
-        <td>Filename of the Info-File, which is read and displayed for each section.</td>
-      </tr>
-      <tr>
-        <td>SitePath</td>
-        <td>String</td>
-        <td>.\site</td>
-        <td>This is the folder, where SiteBuilder generates your freesite.</td>
-      </tr>
-      <tr>
-        <td>OutputExtension</td>
-        <td>String</td>
-        <td>.htm</td>
-        <td>Filename extension of your html-files of your freesite.</td>
-      </tr>
-      <tr>
-        <td>ThumbnailPath</td>
-        <td>String</td>
-        <td>Thumbnails</td>
-        <td>Foldername inside your <var>SitePath</var>. All generated thumbnails are stored in subfolders within this folder.</td>
-      </tr>
-      <tr>
-        <td>ThumbnailExtension</td>
-        <td>String</td>
-        <td>.jpg</td>
-        <td>The filename extension of your thumbnails. ImageMagick uses this extension to determine the fileformat.</td>
-      </tr>
-      <tr>
-        <td>CRCPath</td>
-        <td>String</td>
-        <td>CRCs</td>
-        <td>Foldername inside your <var>SitePath</var>. All generated <abbr title="Cyclic Redundancy Check">CRC</abbr>s and <abbr title="Simple File Verification">SFV</abbr>s are stored in subfolders within this folder.</td>
-      </tr>
-      <tr>
-        <td>CRCExtension</td>
-        <td>String</td>
-        <td>.csv</td>
-        <td>Filename extension for the generated <abbr title="Cyclic Redundancy Check">CRC</abbr>-Files.</td>
-      </tr>
-      <tr>
-        <td>SFVExtension</td>
-        <td>String</td>
-        <td>.sfv</td>
-        <td>Filename extension for the generated <abbr title="Simple File Verification">SFV</abbr>-Files.</td>
-      </tr>
-      <tr>
-        <td>SourcePathSite</td>
-        <td>String</td>
-        <td>Sources</td>
-        <td>Foldername inside your <var>SitePath</var>. All source-files are copied into this folder.</td>
-      </tr>
-      <tr>
-        <td>IndexFilename</td>
-        <td>String</td>
-        <td>index</td>
-        <td>Filename without extension of the index-page.</td>
-      </tr>
-      <tr>
-        <td>ChangelogFilenameSite</td>
-        <td>String</td>
-        <td>changelog</td>
-        <td>Filename without extension of your changelog-page.</td>
-      </tr>
-      <tr>
-        <td>StaticFiles</td>
-        <td>String</td>
-        <td>design.css|activelink.png|about.htm</td>
-        <td>List of files, which are simply copied from the current folder into the site-folder. The files are separated with &quot;|&quot;.</td>
-      </tr>
-      <tr>
-        <td>NewKeyName</td>
-        <td>String</td>
-        <td>New Keys</td>
-        <td>Name of the section, which shows your newest keys.</td>
-      </tr>
-      <tr>
-        <td>SiteKey</td>
-        <td>String</td>
-        <td>USK@yoursitekey/site/</td>
-        <td>Keys of your site without the edition.</td>
-      </tr>
-      <tr>
-        <td>SiteName</td>
-        <td>String</td>
-        <td>MySite</td>
-        <td>Name of your site.</td>
-      </tr>
-      <tr>
-        <td>SiteAuthor</td>
-        <td>String</td>
-        <td>MyName</td>
-        <td>Author of the site (your nickname).</td>
-      </tr>
-      <tr>
-        <td>SiteDescription</td>
-        <td>String</td>
-        <td>Some nice freesite</td>
-        <td>Description of your site.</td>
-      </tr>
-    </tbody>
-  </table>
+Besides of the compiled program you need these additional files:
 
-  <h3>Templates</h3>
+- `sqlite3.dll`, for SiteBuilder, CopyFilesFromSection and DuplicateChecker (already included).
+- `SiteBuilder.ini` for SiteBuilder, CopyFilesFromSection and DuplicateChecker (see chapter [INI file](#INI-file); already included).
+- `ThumbnailMaker-4x1.ini` or `ThumbnailMaker-4x4.ini` for ThumbnailMaker (see chapter [INI file](#INI-file); already included).
 
-  <p>
-    SiteBuilder uses the following templates to generate your freesite. Editing the templates requires basic skill in Object Pascal. Don't forget to <a href="#build">rebuild</a> SiteBuilder after changing a template.
-  </p>
+## Configuration
 
-  <table border="1">
-    <thead>
-      <tr>
-        <td>Template</td>
-        <td>Description</td>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>TemplateIndex.pas</td>
-        <td>Index with links to the every page of your freesite.</td>
-      </tr>
-      <tr>
-        <td>TemplateChangelog.pas</td>
-        <td>Changelog of your freesite.</td>
-      </tr>
-      <tr>
-        <td>TemplateContent.pas</td>
-        <td>Content-Pages of your freesite. These are the pages with your inserted keys and the thumbnails.</td>
-      </tr>
-    </tbody>
-  </table>
+The configuration of SiteBuilder is split into these parts:
 
-  <h3>Source-Code</h3>
+- Some data files to define the content of the freesite.
+- A INI file for the basic configuration.
 
-  <p>
-    You can also edit SiteBuilder by changing its source-code. At the moment no documentation for the source-code is available.
-  </p>
+### Data files
 
-  <h2 id="data-files">Data-Files</h2>
+SiteBuilder uses several CSV files to generate your freesite. These files are:
 
-  <p>
-    SiteBuilder uses several <abbr title="Comma-Separated Values">CSV</abbr>-files to generate your freesite. These files are:
-  </p>
+#### Changelog
 
-  <table border="1">
-    <thead>
-    <tr>
-      <td>Filename</td>
-      <td>Example</td>
-      <td>Content</td>
-      <td>Columns</td>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-      <td>ChangelogFilename</td>
-      <td>.\data\Changelog.csv</td>
-      <td>Changelog</td>
-      <td>Edition (required), Changes</td>
-    </tr>
-    <tr>
-      <td>SourcePath\*SourceFileExtension (the &quot;*&quot; indicates, that you can use multiple <abbr title="Comma-Separated Values">CSV</abbr>-files here)</td>
-      <td>.\data\content\MyKeys.csv</td>
-      <td>Content of your freesite</td>
-      <td>Sections (separated with &quot;|&quot;, required), Key (required), Is Big Thumbnail Required (&quot;x&quot; indicates that big thumbnails are required), Is New Key (&quot;x&quot; indicates a new key), Other Filenames (separated with &quot;|&quot;), Description, Played Music (separated with &quot;|&quot;)</td>
-    </tr>
-    </tbody>
-  </table>
+The changelog contains information about the changes in each edition of the freesite. The CSV file consists of the following columns:
 
-  <h2>Working Example</h2>
+| Column  | Required | Content |
+| ------- | -------- | ------- |
+| Edition | Yes      | Edition |
+| Changes | No       | Changes |
 
-  <p>
-    As the full configuration of SiteBuilder might be a little bit complex, a (almost) full working example is included. Just use the included <code>Options.ini</code> and the folder <code>data</code> with its content. You have to add FFmpeg and ImageMagick and of course have to build SiteBuilder.
-  </p>
+#### Content
 
-  <h2>Usage</h2>
+The CSV file(s) for the content contains the keys to share. The CSV file(s) consists of the following columns:
 
-  <p>
-    After configuration of SiteBuilder, just run <code>SiteBuilderMain.exe</code> to generate/update your freesite.
-  </p>
+| Column                    | Required | Content                                          |
+| ------------------------- | -------- | ------------------------------------------------ |
+| Sections                  | Yes      | Sections (separated with "\|")                   |
+| Key                       | Yes      | Key of the shared file                           |
+| Is Big Thumbnail Required | No       | "x" indicates that big thumbnails are required   |
+| Is New Key                | No       | "x" indicates a new key                          |
+| Other Filenames           | No       | Other filenames (separated with "\|")            |
+| Description               | No       | Description                                      |
+| Audio Type                | No       | None or Original or Music                        |
+| Played Music              | No       | Played music (separated with "\|")               |
+| Has Active Link           | No       | "x" indicates freesites, which has an activelink |
 
-  <h2>Libraries</h2>
+#### Duplicates
 
-  <p>
-    SiteBuilder is using the following libraries, which are included in the archive:
-  </p>
+The CSV file(s) for the duplicates contains information about known duplicate files. The CSV file(s) consists of the following columns:
 
-  <ul>
-    <li><a href="http://www.efg2.com/Lab/Mathematics/FileCheck.htm">CRC32.pas</a> from FileCheck.zip (slightly modified)</li>
-    <li><a href="https://github.com/indasoftware/SQLite3-Delphi-FPC">SQLite</a> (requires <a href="http://www.sqlite.org/download.html">sqlite3.dll</a>)</li>
-    <li><a href="http://www.regular-expressions.info/delphi.html">TPerlRegEx</a></li>
-  </ul>
+| Column        | Required | Content                                                                                                                  |
+| ------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Filenames     | No       | Other filenames (separated with "\|")                                                                                    |
+| Played Music  | No       | Played music (separated with "\|")                                                                                       |
+| CRC           | No       | CRC of the duplicate file                                                                                                |
+| Original Keys | No       | Original key(s) (separated with "\|")                                                                                    |
+| Reason        | No       | Reason why this file is a duplicate. %OriginalKey% is replaced by the original key, %Index% is replaced by 1st, 2nd, ... |
 
-</body>
-</html>
+### INI file
+
+The basic configuration of SiteBuilder is done using a [INI file](https://en.wikipedia.org/wiki/INI_file). Included are 3 versions of this INI file:
+
+- `SiteBuilder.ini` should be used for SiteBuilder, as it contains all required properties.
+- `ThumbnailMaker-4x1.ini` should be used with ThumbnailMaker to create thumbnails of 4 columns and 1 row.
+- `ThumbnailMaker-4x4.ini` should be used with ThumbnailMaker to create thumbnails of 4 columns and 4 rows.
+
+If SiteBuilder reads a property which does not exists in the given INI file, a default value is used. "" is the default value for strings, 0 is the default value for numbers and false is the default value for boolean.
+
+| Property                         | Type    | Description |
+| -------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| VideoBigThumbnailCountHorizontal | Number  | Count of frames in a row of a big thumbnail of a video                                                                                            |
+| VideoBigThumbnailCountVertical   | Number  | Count of frames in a column of a big thumbnail of a video                                                                                         |
+| VideoBigThumbnailMaxWidth        | Number  | Total width in pixel of a big thumbnail of a video. The width of a single frame is `VideoBigThumbnailMaxWidth` / `VideoBigThumbnailCountVertical` |
+| VideoThumbnailCountHorizontal    | Number  | Count of frames in a row of a thumbnail of a video                                                                                                |
+| VideoThumbnailCountVertical      | Number  | Count of frames in a column of a thumbnail of a video                                                                                             |
+| VideoThumbnailMaxWidth           | Number  | Total width in pixel of the thumbnail of a video. The width of a single frame is `VideoThumbnailMaxWidth` / `VideoThumbnailCountVertical`         |
+| VideoTimeFormat                  | String  | Display [format](https://docwiki.embarcadero.com/Libraries/Alexandria/en/System.SysUtils.Format) of the timestamp in each frame                   |
+| ImageThumbnailMaxHeight          | Number  | Maximum height of the thumbnail of an image                                                                                                       |
+| ThumbnailQuality                 | Number  | Compression level for the thumbnails, 1 = lowest image to 100 = best quality. Value is passed to ImageMagick as `-quality value`                  |
+| FFmpegPath                       | String  | Path to FFmpeg. This is the path where `FFmpeg.exe` is located                                                                                    |
+| ImageMagickPath                  | String  | Path to ImageMagick. This is the path where `convert.exe` and `montage.exe` are located                                                           |
+| KeyCacheFilename                 | String  | Filename of the SQLite database of SiteBuilder. The database is used to cache various information like file size or length of a video             |
+| ContentPath                      | String  | Folder of the [content](#Content) files for SiteBuilder. Place your CSV files with the keys here                                                  |
+| ContentFileExtension             | String  | Filename extension of the content files                                                                                                           |
+| DuplicatePath                    | String  | Folder of the [duplicate](#Duplicates) files for SiteBuilder. Place your CSV-Files with the duplicates here                                       |
+| DuplicateFileExtension           | String  | Filename extension of the duplicate files                                                                                                         |
+| ChangelogFilename                | String  | Filename of the [Changelog](#Changelog) file                                                                                                      |
+| DataPath                         | String  | This is the folder, where SiteBuilder looks for the data files                                                                                    |
+| InfoFilename                     | String  | Filename of the Info file, which is read and displayed for each section                                                                           |
+| SitePath                         | String  | This is the folder, where SiteBuilder generates your freesite.                                                                                    |
+| OutputExtension                  | String  | Filename extension of your HTML files of your freesite                                                                                            |
+| ThumbnailPath                    | String  | Folder inside your `SitePath`. All generated thumbnails are stored in sub folders within this folder                                              |
+| ThumbnailExtension               | String  | The filename extension of your thumbnails                                                                                                         |
+| CRCPath                          | String  | Folder inside your `SitePath`. All generated CRC files and SFV files are stored in sub folders within this folder                                 |
+| CRCExtension                     | String  | Filename extension for the generated CRC files                                                                                                    |
+| SFVExtension                     | String  | Filename extension for the generated SFV files                                                                                                    |
+| SourceFolderSite                 | String  | Folder inside your `SitePath`                                                                                                                     |
+| ContentFolderSite                | String  | Folder inside your `SitePath`. All content files are copied into this folder                                                                      |
+| DuplicateFolderSite              | String  | Folder inside your `SitePath`. All duplicate files are copied into this folder                                                                    |
+| IndexFilename                    | String  | Filename without extension of the index page                                                                                                      |
+| ChangelogFilenameSite            | String  | Filename without extension of your changelog page                                                                                                 |
+| StaticFiles                      | String  | List of files, which are simply copied from the current folder into `SitePath`. The files are separated with "\|"                                 |
+| NewKeyName                       | String  | Name of the section, which shows your newest keys                                                                                                 |
+| SiteKey                          | String  | Keys of your site without the edition                                                                                                             |
+| SiteName                         | String  | Name of your freesite                                                                                                                             |
+| SiteAuthor                       | String  | Author of the freesite                                                                                                                            |
+| SiteDescription                  | String  | Description of your freesite                                                                                                                      |
+| SiteKeywords                     | String  | Keywords of your freesite                                                                                                                         |
+| BookmarksFile                    | String  | Filename of the bookmarks.dat in your installation of Freenet. Required to find the latest edition of USK keys                                    |
+| TrimHTML                         | Boolean | 1 = remove trailing and leading spaces of the HTML output, 0 = HTML output is nicely formated                                                     |
+
+## Example
+
+Use the INI file `SiteBuilder.ini` with the CSV files in `data` and the sample files in `data-files` to generate a example freesite. You just have to add FFmpeg and ImageMagick.
+
+## Run
+
+| Program              | Usage                                                                                                            |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| SiteBuilder          | `SiteBuilderMain.exe SiteBuilder.ini`                                                                            |
+| CopyFilesFromSection | `CopyFilesFromSection.exe SiteBuilder.ini section-to-copy target-path`                                           |
+| DuplicateChecker     | `DuplicateChecker.exe SiteBuilder.ini file-to-check`                                                             |
+| ThumbnailMaker       | `ThumbnailMaker.exe ThumbnailMaker-4x1.ini video-file` or `ThumbnailMaker.exe ThumbnailMaker-4x4.ini video-file` |
+
+## Libraries
+
+SiteBuilder is using the following libraries, which are included in the archive:
+
+- [CRC32.pas](http://web.archive.org/web/20190612171808/http://efg2.com/Lab/Mathematics/FileCheck.htm) from [FileCheck.zip](http://web.archive.org/web/20140706173556/http://efg2.com/Lab/Mathematics/FileCheck.ZIP) (slightly modified)
+- [SQLite](https://github.com/plashenkov/SQLite3-Delphi-FPC) (requires [sqlite3.dll](https://www.sqlite.org/download.html))
+- [TPerlRegEx](https://www.regular-expressions.info/delphi.html)
+
+## Contact
+
+Author: eismann
+
+Freemail: eismann@vu6osveg7rpxh2ckrh7ivdyilprn52px2gtxtp4bxjckn46oc6ia.freemail [^1]
+
+Frost: eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+
+FMS: eismann
+
+Sone: [eismann](http://localhost:8888/Sone/viewSone.html?sone=rTzpVIb8X3PoSon~io8IW~Le6ffRp3m-gbpEpvPOF5A) [^2]
+
+I do not regularly read the email associated with GitHub.
+
+## License
+
+SiteBuilder by eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs is licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+
+[^1]: Freemail requires a running Freenet node
+[^2]: Link requires a running Freenet node at http://localhost:8888/
