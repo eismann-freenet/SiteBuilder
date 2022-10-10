@@ -45,7 +45,7 @@ const
   VIDEO_TIME_FORMAT = 'VideoTimeFormat';
   IMAGE_THUMBNAIL_MAX_HEIGHT = 'ImageThumbnailMaxHeight';
   THUMBNAIL_QUALITY = 'ThumbnailQuality';
-  FFMPEG_PATH = 'FFMPEGPath';
+  FFMPEG_PATH = 'FFmpegPath';
   IMAGEMAGICK_PATH = 'ImageMagickPath';
   KEY_CACHE_FILENAME = 'KeyCacheFilename';
   CONTENT_PATH = 'ContentPath';
