@@ -227,7 +227,8 @@ const
   BR = '<br>';
 begin
   Result := StringReplace(Value, #13, BR, [rfReplaceAll]);
-end;
+end;
+
 class function TStringReplacer.Unicode2Latin(const Value: string): string;
 begin
   Result := ReplaceWithDictionary(Value, FCyrillicAlphabet);

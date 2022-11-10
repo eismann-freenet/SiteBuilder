@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,14 +78,14 @@ begin
     Output.Add('<!DOCTYPE html>');
     Output.Add('<html lang="en">');
     Output.Add('<head>');
-    Output.Add(
-      '  <meta http-equiv="content-type" content="text/html; charset=utf-8">');
-    Output.Add('  <meta name="author" content="' + HTMLEscape(SiteAuthor)
-        + '">');
-    Output.Add('  <meta name="description" content="' + HTMLEscape
-        (SiteDescription) + '">');
-    Output.Add('  <meta name="keywords" content="' + HTMLEscape(SiteKeywords)
-        + '">');
+    Output.Add
+      ('  <meta http-equiv="content-type" content="text/html; charset=utf-8">');
+    Output.Add('  <meta name="author" content="' +
+      HTMLEscape(SiteAuthor) + '">');
+    Output.Add('  <meta name="description" content="' +
+      HTMLEscape(SiteDescription) + '">');
+    Output.Add('  <meta name="keywords" content="' +
+      HTMLEscape(SiteKeywords) + '">');
     Output.Add('  <link rel="stylesheet" href="design.css">');
     Output.Add('  <title>' + HTMLEscape(SiteName) + '</title>');
     Output.Add('</head>');
@@ -122,8 +122,8 @@ begin
           begin
             NormalizeLevel(Output, OpenLevel, J);
 
-            Output.Add(Spaces(4 + (4 * OpenLevel)) + '<li>' + HTMLEscape
-                (TitleParts[J]));
+            Output.Add(Spaces(4 + (4 * OpenLevel)) + '<li>' +
+              HTMLEscape(TitleParts[J]));
             Output.Add(Spaces(6 + (4 * OpenLevel)) + '<ul>');
             Inc(OpenLevel);
           end;
@@ -133,10 +133,10 @@ begin
           NormalizeLevel(Output, OpenLevel, J);
 
           Output.Add(Spaces(4 + (4 * OpenLevel)) + '<li>' + '<a href="' +
-              TStringReplacer.URLEncode(Page.URL) + '">' + HTMLEscape
-              (TitleParts[J]) + '</a>');
+            TStringReplacer.URLEncode(Page.URL) + '">' +
+            HTMLEscape(TitleParts[J]) + '</a>');
           if (NextPage = nil) or (Pos(Page.Title + ' > ', NextPage.Title) = 0)
-            then
+          then
           begin
             Output[Output.Count - 1] := Output[Output.Count - 1] + '</li>';
           end;
@@ -153,11 +153,11 @@ begin
     Output.Add('');
     Output.Add('  <p>');
     Output.Add('    <a href="/' + SiteKey +
-        '-1/">Check for newer versions of this freesite</a>');
+      '-1/">Check for newer versions of this freesite</a>');
     Output.Add('    |');
-    Output.Add('    <a href="/?newbookmark=' + SiteKey + IntToStr(MaxEdition)
-        + '/&amp;desc=' + HTMLEscape(SiteName) +
-        '&amp;hasAnActivelink=true">Bookmark this Freesite</a>');
+    Output.Add('    <a href="/?newbookmark=' + SiteKey + IntToStr(MaxEdition) +
+      '/&amp;desc=' + HTMLEscape(SiteName) +
+      '&amp;hasAnActivelink=true">Bookmark this Freesite</a>');
     Output.Add('    |');
     Output.Add('    <a href="about.htm">About</a>');
     Output.Add('    |');

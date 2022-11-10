@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -84,13 +84,12 @@ begin
         begin
           CSVFile.NextLine;
 
-          TCSVFile.Split(OriginalKeyList, CSVFile.GetValue(IndexOriginalKey),
-            '|');
+          TCSVFile.Split(OriginalKeyList,
+            CSVFile.GetValue(IndexOriginalKey), '|');
 
           CurrentDuplicateEntry := TDuplicateEntry.Create
             (CSVFile.GetValue(IndexFilename),
-            CSVFile.GetValue(IndexPlayedMusic),
-            CSVFile.GetValue(IndexCRC),
+            CSVFile.GetValue(IndexPlayedMusic), CSVFile.GetValue(IndexCRC),
             CSVFile.GetValue(IndexOriginalKey), CSVFile.GetValue(IndexReason));
 
           for OriginalKey in OriginalKeyList do

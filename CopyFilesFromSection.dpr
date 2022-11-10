@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,8 +37,7 @@ var
   ConfigFile, SourceFile, Section, TargetPath: string;
   ContentPath, ContentFileExtension, VideoTimeFormat, FFMPEGPath,
     ImageMagickPath, KeyCacheFile, BookmarksParserFilename, NewKeyName,
-    DataPath, SitePath, ThumbnailPath, ThumbnailExtension,
-    CRCPath: string;
+    DataPath, SitePath, ThumbnailPath, ThumbnailExtension, CRCPath: string;
   VideoThumbnailCountHorizontal, VideoThumbnailCountVertical,
     VideoThumbnailMaxWidth, ImageThumbnailMaxHeight, ThumbnailQuality: Integer;
   Files: TStringList;
@@ -92,10 +91,10 @@ begin
       Files := TStringList.Create;
       TSiteBuilder.GetFileList(ContentPath, ContentFileExtension, false, Files);
 
-      VideoThumbnailCountHorizontal := Config.ReadInteger
-        (VIDEO_THUMBNAIL_COUNT_HORIZONTAL);
-      VideoThumbnailCountVertical := Config.ReadInteger
-        (VIDEO_THUMBNAIL_COUNT_VERTICAL);
+      VideoThumbnailCountHorizontal :=
+        Config.ReadInteger(VIDEO_THUMBNAIL_COUNT_HORIZONTAL);
+      VideoThumbnailCountVertical :=
+        Config.ReadInteger(VIDEO_THUMBNAIL_COUNT_VERTICAL);
       VideoThumbnailMaxWidth := Config.ReadInteger(VIDEO_THUMBNAIL_MAX_WIDTH);
       VideoTimeFormat := Config.ReadString(VIDEO_TIME_FORMAT);
       ImageThumbnailMaxHeight := Config.ReadInteger(IMAGE_THUMBNAIL_MAX_HEIGHT);
@@ -140,16 +139,16 @@ begin
         end;
         if not FileExists(TargetPath + PathDelim + FileInfo.Key.FileName) then
         begin
-          TLogger.LogInfo(Format('Copy file "%s" to "%s"...', [SourceFile,
-              TargetPath]));
-          TFile.Copy(SourceFile,
-            TargetPath + PathDelim + FileInfo.Key.FileName);
+          TLogger.LogInfo(Format('Copy file "%s" to "%s"...',
+            [SourceFile, TargetPath]));
+          TFile.Copy(SourceFile, TargetPath + PathDelim +
+            FileInfo.Key.FileName);
         end
         else
         begin
-          TLogger.LogError(Format(
-              'TargetFile "%s" exists! File will be skipped!',
-              [TargetPath + PathDelim + FileInfo.Key.FileName]));
+          TLogger.LogError
+            (Format('TargetFile "%s" exists! File will be skipped!',
+            [TargetPath + PathDelim + FileInfo.Key.FileName]));
         end;
       end;
 

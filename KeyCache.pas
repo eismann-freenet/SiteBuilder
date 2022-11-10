@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -140,8 +140,8 @@ const
   SelectDatabaseVersionSQL = 'SELECT ' + ColumnVersion + ' FROM ' +
     DatabaseVersionTable + ' WHERE ' + ColumnID + ' = ?;';
 
-  CreateKeyCacheTableSQL = 'CREATE TABLE IF NOT EXISTS ' + KeyCacheTable +
-    ' (' + ColumnID + ' INTEGER PRIMARY KEY AUTOINCREMENT, ' + ColumnKey +
+  CreateKeyCacheTableSQL = 'CREATE TABLE IF NOT EXISTS ' + KeyCacheTable + ' ('
+    + ColumnID + ' INTEGER PRIMARY KEY AUTOINCREMENT, ' + ColumnKey +
     ' VARCHAR(500), ' + ColumnFilesize + ' INTEGER, ' + ColumnThumbnailHeight +
     ' INTEGER, ' + ColumnThumbnailWidth + ' INTEGER, ' +
     ColumnBigThumbnailHeight + ' INTEGER, ' + ColumnBigThumbnailWidth +
@@ -153,19 +153,18 @@ const
 
   DropOldKeyCacheKeyIndexSQL = 'DROP INDEX IF EXISTS KeyCacheIndex;';
 
-  CreateKeyCacheCRCIndexSQL = 'CREATE INDEX IF NOT EXISTS ' +
-    KeyCacheCRCIndex + ' ON ' + KeyCacheTable + ' (' + ColumnCRC + ');';
+  CreateKeyCacheCRCIndexSQL = 'CREATE INDEX IF NOT EXISTS ' + KeyCacheCRCIndex +
+    ' ON ' + KeyCacheTable + ' (' + ColumnCRC + ');';
 
-  SelectIDByKeySQL = 'SELECT ' + ColumnID + ' FROM ' + KeyCacheTable +
-    ' WHERE ' + ColumnKey + ' = ?;';
+  SelectIDByKeySQL = 'SELECT ' + ColumnID + ' FROM ' + KeyCacheTable + ' WHERE '
+    + ColumnKey + ' = ?;';
 
-  SelectIDByCRCSQL = 'SELECT ' + ColumnID + ' FROM ' + KeyCacheTable +
-    ' WHERE ' + ColumnCRC + ' = ?;';
+  SelectIDByCRCSQL = 'SELECT ' + ColumnID + ' FROM ' + KeyCacheTable + ' WHERE '
+    + ColumnCRC + ' = ?;';
 
   InsertEntrySQL = 'INSERT INTO ' + KeyCacheTable + ' (' + ColumnKey + ', ' +
-    ColumnFilesize + ', ' + ColumnThumbnailHeight + ', ' +
-    ColumnThumbnailWidth + ', ' +
-    ColumnBigThumbnailHeight + ', ' + ColumnBigThumbnailWidth + ', ' +
+    ColumnFilesize + ', ' + ColumnThumbnailHeight + ', ' + ColumnThumbnailWidth
+    + ', ' + ColumnBigThumbnailHeight + ', ' + ColumnBigThumbnailWidth + ', ' +
     ColumnVideoLength + ', ' + ColumnCRC + ', ' + ColumnUsed +
     ') VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1);';
 
@@ -181,8 +180,8 @@ const
   SelectThumbnailWidthSQL = 'SELECT ' + ColumnThumbnailWidth + ' FROM ' +
     KeyCacheTable + ' WHERE ' + ColumnID + ' = ?;';
 
-  SelectBigThumbnailHeightSQL = 'SELECT ' + ColumnBigThumbnailHeight +
-    ' FROM ' + KeyCacheTable + ' WHERE ' + ColumnID + ' = ?;';
+  SelectBigThumbnailHeightSQL = 'SELECT ' + ColumnBigThumbnailHeight + ' FROM '
+    + KeyCacheTable + ' WHERE ' + ColumnID + ' = ?;';
 
   SelectBigThumbnailWidthSQL = 'SELECT ' + ColumnBigThumbnailWidth + ' FROM ' +
     KeyCacheTable + ' WHERE ' + ColumnID + ' = ?;';
@@ -208,21 +207,20 @@ const
   UpdateBigThumbnailWidthSQL = 'UPDATE ' + KeyCacheTable + ' SET ' +
     ColumnBigThumbnailWidth + ' = ? WHERE ' + ColumnID + ' = ?;';
 
-  UpdateVideoLengthSQL = 'UPDATE ' + KeyCacheTable + ' SET ' +
-    ColumnVideoLength + ' = ? WHERE ' + ColumnID + ' = ?;';
+  UpdateVideoLengthSQL = 'UPDATE ' + KeyCacheTable + ' SET ' + ColumnVideoLength
+    + ' = ? WHERE ' + ColumnID + ' = ?;';
 
-  UpdateCRCSQL = 'UPDATE ' + KeyCacheTable + ' SET ' + ColumnCRC +
-    ' = ? WHERE ' + ColumnID + ' = ?;';
+  UpdateCRCSQL = 'UPDATE ' + KeyCacheTable + ' SET ' + ColumnCRC + ' = ? WHERE '
+    + ColumnID + ' = ?;';
 
   InitUsedSQL = 'UPDATE ' + KeyCacheTable + ' SET ' + ColumnUsed + ' = 0;';
-  SetUsedSQL = 'UPDATE ' + KeyCacheTable + ' SET ' + ColumnUsed +
-    ' = 1 WHERE ' + ColumnID + ' = ?;';
-  RemoveUnusedSQL = 'DELETE FROM ' + KeyCacheTable + ' WHERE ' + ColumnUsed +
-    ' = 0;';
+  SetUsedSQL = 'UPDATE ' + KeyCacheTable + ' SET ' + ColumnUsed + ' = 1 WHERE '
+    + ColumnID + ' = ?;';
+  RemoveUnusedSQL = 'DELETE FROM ' + KeyCacheTable + ' WHERE ' + ColumnUsed
+    + ' = 0;';
 
-  SelectSimilarVideoLengthSQL = 'SELECT ' + ColumnID + ' FROM ' +
-    KeyCacheTable + ' WHERE ' + ColumnVideoLength +
-    ' BETWEEN ? AND ?;';
+  SelectSimilarVideoLengthSQL = 'SELECT ' + ColumnID + ' FROM ' + KeyCacheTable
+    + ' WHERE ' + ColumnVideoLength + ' BETWEEN ? AND ?;';
 
 procedure TKeyCache.Add(const Key: string; const Filesize, ThumbnailHeight,
   ThumbnailWidth, BigThumbnailHeight, BigThumbnailWidth, VideoLength: Integer;
@@ -267,8 +265,8 @@ begin
   FSelectFilesizeStatement := FDB.Prepare(SelectFilesizeSQL);
   FSelectThumbnailHeightStatement := FDB.Prepare(SelectThumbnailHeightSQL);
   FSelectThumbnailWidthStatement := FDB.Prepare(SelectThumbnailWidthSQL);
-  FSelectBigThumbnailHeightStatement := FDB.Prepare
-    (SelectBigThumbnailHeightSQL);
+  FSelectBigThumbnailHeightStatement :=
+    FDB.Prepare(SelectBigThumbnailHeightSQL);
   FSelectBigThumbnailWidthStatement := FDB.Prepare(SelectBigThumbnailWidthSQL);
   FSelectVideoLengthStatement := FDB.Prepare(SelectVideoLengthSQL);
   FSelectCRCStatement := FDB.Prepare(SelectCRCSQL);
@@ -276,8 +274,8 @@ begin
   FUpdateFilesizeStatement := FDB.Prepare(UpdateFilesizeSQL);
   FUpdateThumbnailHeightStatement := FDB.Prepare(UpdateThumbnailHeightSQL);
   FUpdateThumbnailWidthStatement := FDB.Prepare(UpdateThumbnailWidthSQL);
-  FUpdateBigThumbnailHeightStatement := FDB.Prepare
-    (UpdateBigThumbnailHeightSQL);
+  FUpdateBigThumbnailHeightStatement :=
+    FDB.Prepare(UpdateBigThumbnailHeightSQL);
   FUpdateBigThumbnailWidthStatement := FDB.Prepare(UpdateBigThumbnailWidthSQL);
   FUpdateVideoLengthStatement := FDB.Prepare(UpdateVideoLengthSQL);
   FUpdateCRCStatement := FDB.Prepare(UpdateCRCSQL);
@@ -410,7 +408,7 @@ begin
   while FSelectSimilarVideoLength.Step = SQLITE_ROW do
   begin
     SetLength(Result, Length(Result) + 1);
-    Result[ High(Result)] := FSelectSimilarVideoLength.ColumnInt(0);
+    Result[High(Result)] := FSelectSimilarVideoLength.ColumnInt(0);
   end;
   FSelectSimilarVideoLength.Reset;
 end;

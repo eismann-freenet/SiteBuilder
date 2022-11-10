@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -113,17 +113,17 @@ var
 begin
   Config := TConfig.Create(ConfigFilename);
   try
-    VideoThumbnailCountHorizontal := Config.ReadInteger
-      (VIDEO_THUMBNAIL_COUNT_HORIZONTAL);
-    VideoThumbnailCountVertical := Config.ReadInteger
-      (VIDEO_THUMBNAIL_COUNT_VERTICAL);
+    VideoThumbnailCountHorizontal :=
+      Config.ReadInteger(VIDEO_THUMBNAIL_COUNT_HORIZONTAL);
+    VideoThumbnailCountVertical :=
+      Config.ReadInteger(VIDEO_THUMBNAIL_COUNT_VERTICAL);
     VideoThumbnailMaxWidth := Config.ReadInteger(VIDEO_THUMBNAIL_MAX_WIDTH);
-    VideoBigThumbnailCountHorizontal := Config.ReadInteger
-      (VIDEO_BIG_THUMBNAIL_COUNT_HORIZONTAL);
-    VideoBigThumbnailCountVertical := Config.ReadInteger
-      (VIDEO_BIG_THUMBNAIL_COUNT_VERTICAL);
-    VideoBigThumbnailMaxWidth := Config.ReadInteger
-      (VIDEO_BIG_THUMBNAIL_MAX_WIDTH);
+    VideoBigThumbnailCountHorizontal :=
+      Config.ReadInteger(VIDEO_BIG_THUMBNAIL_COUNT_HORIZONTAL);
+    VideoBigThumbnailCountVertical :=
+      Config.ReadInteger(VIDEO_BIG_THUMBNAIL_COUNT_VERTICAL);
+    VideoBigThumbnailMaxWidth :=
+      Config.ReadInteger(VIDEO_BIG_THUMBNAIL_MAX_WIDTH);
     VideoTimeFormat := Config.ReadString(VIDEO_TIME_FORMAT);
     ImageThumbnailMaxHeight := Config.ReadInteger(IMAGE_THUMBNAIL_MAX_HEIGHT);
     ThumbnailQuality := Config.ReadInteger(THUMBNAIL_QUALITY);
@@ -136,8 +136,8 @@ begin
       ImageThumbnailMaxHeight, ThumbnailQuality, FFMPEGPath, ImageMagickPath);
     FBigThumbnail := TThumbnail.Create(VideoBigThumbnailCountHorizontal,
       VideoBigThumbnailCountVertical, VideoBigThumbnailMaxWidth,
-      VideoTimeFormat, ImageThumbnailMaxHeight,
-      ThumbnailQuality, FFMPEGPath, ImageMagickPath);
+      VideoTimeFormat, ImageThumbnailMaxHeight, ThumbnailQuality, FFMPEGPath,
+      ImageMagickPath);
 
     KeyCacheFilename := Config.ReadString(KEY_CACHE_FILENAME);
     FKeyCacheDatabase := TKeyCache.Create(KeyCacheFilename);
@@ -188,11 +188,11 @@ begin
     FFileInfoTree := TFileInfoTree.Create;
 
     TLogger.LogInfo(Format('Read Bookmarks-File "%s"',
-        [BookmarksParserFilename]));
+      [BookmarksParserFilename]));
     if not FileExists(BookmarksParserFilename) then
     begin
       TLogger.LogError(Format('Bookmarks-File "%s" is missing!',
-          [BookmarksParserFilename]));
+        [BookmarksParserFilename]));
     end;
     FBookmarksParser := TBookmarksParser.Create(BookmarksParserFilename,
       TEncoding.UTF8);
@@ -230,7 +230,7 @@ begin
   ProcessSourceFiles;
 
   WriteChangelog(FSitePath + PathDelim + FChangelogFilenameSite +
-      FOutputExtension, FIndexFilename + FOutputExtension, FChangelog,
+    FOutputExtension, FIndexFilename + FOutputExtension, FChangelog,
     FSiteAuthor, FSiteDescription, FSiteKeywords, FTrimHTML);
 
   Pages := TIndexPageList.Create;
@@ -249,10 +249,10 @@ begin
       CRCFile := TFileInfo.SectionToUrl(Page.Section, FCRCExtension);
       SFVFile := TFileInfo.SectionToUrl(Page.Section, FSFVExtension);
       WriteContent(Page.Section, FSitePath + PathDelim + Page.URL, Page.Title,
-        InfoContent, FIndexFilename + FOutputExtension, Files,
-        FOutputExtension, FSiteKey, FCRCPath + TFileInfo.PathDelimiterSite,
-        CRCFile, SFVFile, FChangelog.MaxEdition, FSiteAuthor, FSiteDescription,
-        FSiteKeywords, FTrimHTML);
+        InfoContent, FIndexFilename + FOutputExtension, Files, FOutputExtension,
+        FSiteKey, FCRCPath + TFileInfo.PathDelimiterSite, CRCFile, SFVFile,
+        FChangelog.MaxEdition, FSiteAuthor, FSiteDescription, FSiteKeywords,
+        FTrimHTML);
       Files.GenerateCRCFile(FullCRCPath + CRCFile, CRC);
       Files.GenerateCRCFile(FullCRCPath + SFVFile, SFV);
     end;
@@ -290,7 +290,7 @@ begin
           (not Replacer.ContainsKey(SearchPattern)) then
         begin
           Replacer.Add(SearchPattern, TStringReplacer.FormatKey(FileInfo.Key,
-              FileInfo.Description));
+            FileInfo.Description));
         end;
       end;
     end;
@@ -313,8 +313,8 @@ begin
           FileContent := nil;
 
           try
-            StreamIn := TFileStream.Create(StaticFile,
-              fmOpenRead or fmShareDenyNone);
+            StreamIn := TFileStream.Create(StaticFile, fmOpenRead or
+              fmShareDenyNone);
             StreamOut := TFileStream.Create(FSitePath + PathDelim + StaticFile,
               fmCreate or fmShareExclusive);
 
@@ -355,8 +355,8 @@ begin
   ForceDirectories(SourcePath + FContentFolderSite);
   ForceDirectories(SourcePath + FDuplicateFolderSite);
 
-  CopyFile(FChangelogFilename,
-    SourcePath + ExtractFileName(FChangelogFilename));
+  CopyFile(FChangelogFilename, SourcePath +
+    ExtractFileName(FChangelogFilename));
 
   DuplicateFiles := TStringList.Create;
   try
@@ -365,9 +365,8 @@ begin
 
     for Filename in DuplicateFiles do
     begin
-      CopyFile(Filename,
-        SourcePath + FDuplicateFolderSite + PathDelim + ExtractFileName
-          (Filename));
+      CopyFile(Filename, SourcePath + FDuplicateFolderSite + PathDelim +
+        ExtractFileName(Filename));
     end;
   finally
     DuplicateFiles.Free;
@@ -381,9 +380,8 @@ begin
       FThumbnailExtension, FThumbnailPath, FCRCExtension, FDuplicateTree);
     for Filename in ContentFiles do
     begin
-      CopyFile(Filename,
-        SourcePath + FContentFolderSite + PathDelim + ExtractFileName(Filename)
-        );
+      CopyFile(Filename, SourcePath + FContentFolderSite + PathDelim +
+        ExtractFileName(Filename));
     end;
   finally
     ContentFiles.Free;
@@ -406,8 +404,8 @@ var
 begin
   Files.Clear;
   try
-    if FindFirst(Path + PathDelim + '*' + Extension, faAnyFile, SearchResult)
-      = 0 then
+    if FindFirst(Path + PathDelim + '*' + Extension, faAnyFile, SearchResult) = 0
+    then
     begin
       repeat
         if ExtractFileExt(SearchResult.Name) = Extension then
@@ -458,8 +456,8 @@ var
   Stream: TStream;
 begin
   Result := '';
-  InfoFile := FDataPath + PathDelim + TFileInfo.SectionToPath(Page)
-    + PathDelim + FInfoFilename;
+  InfoFile := FDataPath + PathDelim + TFileInfo.SectionToPath(Page) + PathDelim
+    + FInfoFilename;
 
   if FileExists(InfoFile) then
   begin

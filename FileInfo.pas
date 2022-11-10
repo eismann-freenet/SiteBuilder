@@ -75,12 +75,12 @@ type
     procedure LoadExtraCRCFile(const Filename: string);
 
   public
-    constructor Create(Thumbnail, BigThumbnail: TThumbnail;
-      KeyCache: TKeyCache; BookmarksParser: TBookmarksParser;
-      const DataPath, SitePath, ThumbnailExt, ThumbnailPath, CRCExtension,
-      Sections, FileKey, IsNewKey, IsBigThumbnailRequired, OtherFilenames,
-      Description, AudioTracks, AudioType, HasActiveLink: string;
-      DuplicateList: TDuplicateList; const NewKeyName: string);
+    constructor Create(Thumbnail, BigThumbnail: TThumbnail; KeyCache: TKeyCache;
+      BookmarksParser: TBookmarksParser; const DataPath, SitePath, ThumbnailExt,
+      ThumbnailPath, CRCExtension, Sections, FileKey, IsNewKey,
+      IsBigThumbnailRequired, OtherFilenames, Description, AudioTracks,
+      AudioType, HasActiveLink: string; DuplicateList: TDuplicateList;
+      const NewKeyName: string);
     destructor Destroy; override;
     class function DetectType(const Filename: string): TFileType;
     class function FormatFileSize(const Size: Int64): string;
@@ -134,10 +134,10 @@ const
 
 constructor TFileInfo.Create(Thumbnail, BigThumbnail: TThumbnail;
   KeyCache: TKeyCache; BookmarksParser: TBookmarksParser;
-  const DataPath, SitePath, ThumbnailExt, ThumbnailPath, CRCExtension,
-  Sections, FileKey, IsNewKey, IsBigThumbnailRequired, OtherFilenames,
-  Description, AudioTracks, AudioType, HasActiveLink: string;
-  DuplicateList: TDuplicateList; const NewKeyName: string);
+  const DataPath, SitePath, ThumbnailExt, ThumbnailPath, CRCExtension, Sections,
+  FileKey, IsNewKey, IsBigThumbnailRequired, OtherFilenames, Description,
+  AudioTracks, AudioType, HasActiveLink: string; DuplicateList: TDuplicateList;
+  const NewKeyName: string);
 var
   AudioTypeID, KeyID: Integer;
 begin
@@ -189,8 +189,8 @@ begin
   end
   else
   begin
-    FFullFileName := FDataPath + PathDelim + SectionToPath(FFilePath)
-      + PathDelim + Key.Filename;
+    FFullFileName := FDataPath + PathDelim + SectionToPath(FFilePath) +
+      PathDelim + Key.Filename;
 
     if not FileExists(FFullFileName) then
     begin
@@ -206,7 +206,7 @@ begin
       if AudioType <> '' then
       begin
         TLogger.LogError(Format('Invalid AudioType "%s" for key "%s"!',
-            [AudioType, FFileKey.Key]));
+          [AudioType, FFileKey.Key]));
       end;
       FAudioType := NotSet;
     end
@@ -250,9 +250,9 @@ begin
       FFileLength := FKeyCache.GetVideoLength(KeyID);
 
       if (FFileType = Movie) and
-        ((FThumbnailHeight = 0) or (FThumbnailWidth = 0) or (FFileLength = 0)
-          or (FHasBigThumbnail and ((FBigThumbnailHeight = 0) or
-              (FBigThumbnailWidth = 0)))) then
+        ((FThumbnailHeight = 0) or (FThumbnailWidth = 0) or (FFileLength = 0) or
+        (FHasBigThumbnail and ((FBigThumbnailHeight = 0) or
+        (FBigThumbnailWidth = 0)))) then
       begin
         UpdateThumbnails;
         FKeyCache.UpdateVideoLength(KeyID, FFileLength);
@@ -279,25 +279,24 @@ begin
     end;
 
     FThumbnailFilename := FThumbnailPath + PathDelim +
-      TStringReplacer.Unicode2Latin(SectionToPath(FFilePath))
-      + PathDelim + TStringReplacer.Unicode2Latin
-      (Key.Filename + FThumbnailExt);
+      TStringReplacer.Unicode2Latin(SectionToPath(FFilePath)) + PathDelim +
+      TStringReplacer.Unicode2Latin(Key.Filename + FThumbnailExt);
     FBigThumbnailFilename := FThumbnailPath + PathDelim +
-      TStringReplacer.Unicode2Latin(SectionToPath(FFilePath))
-      + PathDelim + TStringReplacer.Unicode2Latin
-      (Key.Filename + BigThumbnailExt + FThumbnailExt);
+      TStringReplacer.Unicode2Latin(SectionToPath(FFilePath)) + PathDelim +
+      TStringReplacer.Unicode2Latin(Key.Filename + BigThumbnailExt +
+      FThumbnailExt);
 
     if (FFileType in [Movie, Image]) and
       (not FileExists(FSitePath + PathDelim + FThumbnailFilename)) then
     begin
       TLogger.LogError(Format('Thumbnail "%s" is missing!',
-          [FSitePath + PathDelim + FThumbnailFilename]));
+        [FSitePath + PathDelim + FThumbnailFilename]));
     end;
     if (FFileType in [Movie, Image]) and HasBigThumbnail and
       (not FileExists(FSitePath + PathDelim + FBigThumbnailFilename)) then
     begin
       TLogger.LogError(Format('Thumbnail "%s" is missing!',
-          [FSitePath + PathDelim + FBigThumbnailFilename]));
+        [FSitePath + PathDelim + FBigThumbnailFilename]));
     end;
 
     FThumbnailFilename := StringReplace(FThumbnailFilename, PathDelim,
@@ -413,10 +412,10 @@ begin
       begin
         TCSVFile.Split(Parts, Line, ',');
         SetLength(FExtraCRC, Length(FExtraCRC) + 1);
-        FExtraCRC[ High(FExtraCRC)].Filename := Parts[0];
-        FExtraCRC[ High(FExtraCRC)].FileSize := StrToInt(Parts[1]);
-        FExtraCRC[ High(FExtraCRC)].CRC := Parts[2];
-        FExtraCRC[ High(FExtraCRC)].Path := Parts[3];
+        FExtraCRC[High(FExtraCRC)].Filename := Parts[0];
+        FExtraCRC[High(FExtraCRC)].FileSize := StrToInt(Parts[1]);
+        FExtraCRC[High(FExtraCRC)].CRC := Parts[2];
+        FExtraCRC[High(FExtraCRC)].Path := Parts[3];
       end;
       if High(FExtraCRC) = -1 then
       begin
@@ -435,11 +434,11 @@ begin
   Result := StringReplace(Section, SectionDelimiter, ' > ', [rfReplaceAll]);
 end;
 
-class function TFileInfo.SectionToURL(const Section, OutputExtension: string)
-  : string;
+class function TFileInfo.SectionToURL(const Section, OutputExtension
+  : string): string;
 begin
   Result := TStringReplacer.Unicode2Latin(StringReplace(Section,
-      SectionDelimiter, '.', [rfReplaceAll])) + OutputExtension;
+    SectionDelimiter, '.', [rfReplaceAll])) + OutputExtension;
 end;
 
 procedure TFileInfo.DetectSize;
@@ -457,7 +456,7 @@ begin
     end;
   except
     TLogger.LogError(Format('Unable to get size from file "%s"',
-        [FFullFileName]));
+      [FFullFileName]));
   end;
 end;
 
@@ -511,8 +510,8 @@ begin
     FullThumbnailFilename := FullThumbnailPath + PathDelim +
       TStringReplacer.Unicode2Latin(Key.Filename + FThumbnailExt);
     FullBigThumbnailFilename := FullThumbnailPath + PathDelim +
-      TStringReplacer.Unicode2Latin
-      (Key.Filename + BigThumbnailExt + FThumbnailExt);
+      TStringReplacer.Unicode2Latin(Key.Filename + BigThumbnailExt +
+      FThumbnailExt);
 
     ForceDirectories(FullThumbnailPath);
   end;

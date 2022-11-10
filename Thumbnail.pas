@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -103,8 +103,8 @@ procedure TThumbnail.GenerateImageThumbnail(const Filename,
 begin
   DeleteFile(OutputFilename);
   ExecuteWait(Format(ImageThumbnailCommand, [FConvert, Filename,
-      IntToStr(FImageThumbnailMaxHeight), IntToStr(FThumbnailQuality),
-      OutputFilename]));
+    IntToStr(FImageThumbnailMaxHeight), IntToStr(FThumbnailQuality),
+    OutputFilename]));
 end;
 
 procedure TThumbnail.GenerateVideoThumbnail(const Filename,
@@ -154,25 +154,25 @@ begin
       if SeekPos = 0 then
       begin
         // Don't seek to 00:00:00 to avoid a possible missing key-frame.
-        ExecuteWait(Format(ScreenShotMissingKeyFrameCommand, [FFFMPEG,
-            Filename, CurrentPos, ScreenShotFilename]));
+        ExecuteWait(Format(ScreenShotMissingKeyFrameCommand, [FFFMPEG, Filename,
+          CurrentPos, ScreenShotFilename]));
       end
       else
       begin
         ExecuteWait(Format(ScreenShotCommand, [FFFMPEG, CurrentSeekPos,
-            Filename, CurrentPos, ScreenShotFilename]))
+          Filename, CurrentPos, ScreenShotFilename]))
       end;
 
       ExecuteWait(Format(ScreenShotEditCommand, [FConvert, ScreenShotFilename,
-          FOneThumbnailWidth, CurrentDisplayPos, EditScreenShotFilename]));
+        FOneThumbnailWidth, CurrentDisplayPos, EditScreenShotFilename]));
 
       AllFiles := AllFiles + Format(ScreenShotEditAllFiles,
         [EditScreenShotFilename]);
     end;
-    ExecuteWait(Format(MontageCommand, [FMontage,
-        IntToStr(FVideoThumbnailCountHorizontal),
-        IntToStr(FVideoThumbnailCountVertical), IntToStr(FThumbnailQuality),
-        AllFiles, OutputFilename]));
+    ExecuteWait(Format(MontageCommand,
+      [FMontage, IntToStr(FVideoThumbnailCountHorizontal),
+      IntToStr(FVideoThumbnailCountVertical), IntToStr(FThumbnailQuality),
+      AllFiles, OutputFilename]));
 
     if not DeleteFiles(FilesToDelete) then
     begin
@@ -184,10 +184,11 @@ begin
   end;
   if not FileExists(OutputFilename) then
   begin
-    TLogger.LogError(Format(
-        'Unable to generate a thumbnail for file "%s". Generating an thumbnail which shows that error-message.', [Filename]));
-    ExecuteWait(Format(ScreenShotErrorCommand, [FConvert,
-        'No thumbnail available!', OutputFilename]));
+    TLogger.LogError
+      (Format('Unable to generate a thumbnail for file "%s". Generating an thumbnail which shows that error-message.',
+      [Filename]));
+    ExecuteWait(Format(ScreenShotErrorCommand,
+      [FConvert, 'No thumbnail available!', OutputFilename]));
   end;
 end;
 
@@ -207,15 +208,16 @@ begin
     LengthParts := TStringList.Create;
 
     try
-      ExecuteOutputCached(Format(VideoLengthCommand, [FFFMPEG, Filename]),
-        Output);
+      ExecuteOutputCached(Format(VideoLengthCommand, [FFFMPEG, Filename]
+        ), Output);
 
       if AnsiContainsText(Output, VideoLengthFailDetection) then
       begin
-        TLogger.LogError(Format(
-            'Unable to determine correct duration for file "%s". Try a slower approach.', [Filename]));
+        TLogger.LogError
+          (Format('Unable to determine correct duration for file "%s". Try a slower approach.',
+          [Filename]));
         ExecuteOutputCached(Format(VideoLengthFallbackCommand,
-            [FFFMPEG, Filename]), Output);
+          [FFFMPEG, Filename]), Output);
         LengthRaw := GetRegExResult(RegEx, Output, VideoLengthFailPattern);
       end
       else
@@ -240,7 +242,7 @@ begin
     if IsError then
     begin
       TLogger.LogError(Format('Unable to determine duration for file "%s".',
-          [Filename]));
+        [Filename]));
       LengthParts.Clear;
       LengthParts.Add('0');
       LengthParts.Add('0');
@@ -248,8 +250,8 @@ begin
     end;
 
     Result := (StrToInt(LengthParts[0]) * 3600000) +
-      (StrToInt(LengthParts[1]) * 60000) + Trunc
-      (StrToFloat(LengthParts[2]) * 1000);
+      (StrToInt(LengthParts[1]) * 60000) +
+      Trunc(StrToFloat(LengthParts[2]) * 1000);
   finally
     RegEx.Free;
     LengthParts.Free;
@@ -271,16 +273,16 @@ end;
 
 constructor TThumbnail.Create(const VideoThumbnailCountHorizontal,
   VideoThumbnailCountVertical, VideoThumbnailMaxWidth: Integer;
-  const VideoTimeFormat: string; const ImageThumbnailMaxHeight,
-  ThumbnailQuality: Integer; const FFMPEGPath, ImageMagickPath: string);
+  const VideoTimeFormat: string; const ImageThumbnailMaxHeight, ThumbnailQuality
+  : Integer; const FFMPEGPath, ImageMagickPath: string);
 begin
   FVideoThumbnailCountHorizontal := VideoThumbnailCountHorizontal;
   FVideoThumbnailCountVertical := VideoThumbnailCountVertical;
   FVideoThumbnailMaxWidth := VideoThumbnailMaxWidth;
   FImageThumbnailMaxHeight := ImageThumbnailMaxHeight;
   FThumbnailQuality := ThumbnailQuality;
-  FOneThumbnailWidth := IntToStr(FVideoThumbnailMaxWidth div
-      VideoThumbnailCountHorizontal);
+  FOneThumbnailWidth :=
+    IntToStr(FVideoThumbnailMaxWidth div VideoThumbnailCountHorizontal);
   FVideoTimeFormat := VideoTimeFormat;
   FFFMPEG := FFMPEGPath + FFMPEGExe;
   CheckCommand(FFFMPEG);

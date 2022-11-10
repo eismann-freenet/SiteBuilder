@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,13 +25,13 @@ type
   EInvalidRegEx = class(Exception)
   end;
 
-function GetRegExResult(RegexObj: TPerlRegEx; const Subject, RegEx: string)
-  : string;
+function GetRegExResult(RegexObj: TPerlRegEx;
+  const Subject, RegEx: string): string;
 
 implementation
 
-function GetRegExResult(RegexObj: TPerlRegEx; const Subject, RegEx: string)
-  : string;
+function GetRegExResult(RegexObj: TPerlRegEx;
+  const Subject, RegEx: string): string;
 var
   i: Integer;
 begin
@@ -51,8 +51,8 @@ begin
     end;
   except
     on EAssertionFailed do
-      raise EInvalidRegEx.CreateFmt
-        ('No match for regex "%s" and subject "%s"!', [RegEx, Subject]);
+      raise EInvalidRegEx.CreateFmt('No match for regex "%s" and subject "%s"!',
+        [RegEx, Subject]);
   end;
 end;
 

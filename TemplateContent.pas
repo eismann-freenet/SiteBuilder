@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,14 +52,14 @@ begin
     Output.Add('<!DOCTYPE html>');
     Output.Add('<html lang="en">');
     Output.Add('<head>');
-    Output.Add(
-      '  <meta http-equiv="content-type" content="text/html; charset=utf-8">');
-    Output.Add('  <meta name="author" content="' + HTMLEscape(SiteAuthor)
-        + '">');
-    Output.Add('  <meta name="description" content="' + HTMLEscape
-        (SiteDescription) + '">');
-    Output.Add('  <meta name="keywords" content="' + HTMLEscape(SiteKeywords)
-        + '">');
+    Output.Add
+      ('  <meta http-equiv="content-type" content="text/html; charset=utf-8">');
+    Output.Add('  <meta name="author" content="' +
+      HTMLEscape(SiteAuthor) + '">');
+    Output.Add('  <meta name="description" content="' +
+      HTMLEscape(SiteDescription) + '">');
+    Output.Add('  <meta name="keywords" content="' +
+      HTMLEscape(SiteKeywords) + '">');
     Output.Add('  <link rel="stylesheet" href="design.css">');
     Output.Add('  <title>' + HTMLEscape(Title) + '</title>');
     Output.Add('</head>');
@@ -68,7 +68,7 @@ begin
     Output.Add('');
     Output.Add('  <p>');
     Output.Add('    <a href="' + IndexFilename +
-        '">&lt; Back to the index</a> | <a href="#keys">All keys</a>');
+      '">&lt; Back to the index</a> | <a href="#keys">All keys</a>');
     Output.Add('  </p>');
     Output.Add('');
     Output.Add('  <h2>Information</h2>');
@@ -79,25 +79,25 @@ begin
     Output.Add('');
     Output.Add('    <dt>Total size:</dt>');
     Output.Add('    <dd>' + TFileInfo.FormatFileSize(Files.FileSizeSum)
-        + '</dd>');
+      + '</dd>');
     Output.Add('');
-    Output.Add(
-      '    <dt><label for="crc-file"><abbr title="Cyclic Redundancy Check">CRC</abbr>-File:</label></dt>');
-    Output.Add(
-      '    <dd><input id="crc-file" type="text" readonly="readonly" value="' +
-        SiteKey + IntToStr(MaxEdition) + '/' + TStringReplacer.URLEncode
-        (CRCPath + CRCFile) + '"><br>');
-    Output.Add('    <a href="' + TStringReplacer.URLEncode(CRCPath + CRCFile)
-        + '?type=text/plain">' + HTMLEscape(CRCFile) + '</a></dd>');
+    Output.Add
+      ('    <dt><label for="crc-file"><abbr title="Cyclic Redundancy Check">CRC</abbr>-File:</label></dt>');
+    Output.Add
+      ('    <dd><input id="crc-file" type="text" readonly="readonly" value="' +
+      SiteKey + IntToStr(MaxEdition) + '/' + TStringReplacer.URLEncode(CRCPath +
+      CRCFile) + '"><br>');
+    Output.Add('    <a href="' + TStringReplacer.URLEncode(CRCPath + CRCFile) +
+      '?type=text/plain">' + HTMLEscape(CRCFile) + '</a></dd>');
     Output.Add('');
-    Output.Add(
-      '    <dt><label for="sfv-file"><abbr title="Simple File Verification">SFV</abbr>-File:</label></dt>');
-    Output.Add(
-      '    <dd><input id="sfv-file" type="text" readonly="readonly" value="' +
-        SiteKey + IntToStr(MaxEdition) + '/' + TStringReplacer.URLEncode
-        (CRCPath + SFVFile) + '"><br>');
-    Output.Add('    <a href="' + TStringReplacer.URLEncode(CRCPath + SFVFile)
-        + '?type=text/plain">' + HTMLEscape(SFVFile) + '</a></dd>');
+    Output.Add
+      ('    <dt><label for="sfv-file"><abbr title="Simple File Verification">SFV</abbr>-File:</label></dt>');
+    Output.Add
+      ('    <dd><input id="sfv-file" type="text" readonly="readonly" value="' +
+      SiteKey + IntToStr(MaxEdition) + '/' + TStringReplacer.URLEncode(CRCPath +
+      SFVFile) + '"><br>');
+    Output.Add('    <a href="' + TStringReplacer.URLEncode(CRCPath + SFVFile) +
+      '?type=text/plain">' + HTMLEscape(SFVFile) + '</a></dd>');
     Output.Add('');
 
     if (InfoContent <> '') then
@@ -105,7 +105,7 @@ begin
       Output.Add('');
       Output.Add('    <dt>Note:</dt>');
       Output.Add('    <dd>' + TStringReplacer.NL2BR(HTMLEscape(InfoContent))
-          + '</dd>');
+        + '</dd>');
     end;
 
     Output.Add('  </dl>');
@@ -123,7 +123,7 @@ begin
         Output.Add('  <h3>' + HTMLEscape(FileInfo.Description) + '</h3>');
         Output.Add('  <div>');
         Output.Add('    ' + TStringReplacer.FormatKey(FileInfo.Key,
-            FileInfo.Description));
+          FileInfo.Description));
         Output.Add('  </div>');
       end
       else
@@ -141,9 +141,8 @@ begin
             for J := 0 to Sections.Count - 1 do
             begin
               OtherSection := '      <a href="' + TStringReplacer.URLEncode
-                (TFileInfo.SectionToUrl(Sections[J], OutputExtension))
-                + '">' + HTMLEscape(TFileInfo.SectionToTitle(Sections[J]))
-                + '</a>';
+                (TFileInfo.SectionToUrl(Sections[J], OutputExtension)) + '">' +
+                HTMLEscape(TFileInfo.SectionToTitle(Sections[J])) + '</a>';
               if J < Sections.Count - 1 then
               begin
                 Output.Add(OtherSection + '<br>');
@@ -164,7 +163,7 @@ begin
         begin
           Output.Add('    <dt>Other filenames:</dt>');
           Output.Add('    <dd>' + TStringReplacer.NL2BR
-              (HTMLEscape(FileInfo.FileOtherNames)) + '</dd>');
+            (HTMLEscape(FileInfo.FileOtherNames)) + '</dd>');
           Output.Add('');
         end;
 
@@ -172,9 +171,9 @@ begin
         begin
           Output.Add('    <dt>Audio:</dt>');
           Output.Add('    <dd><a href="#audio-' + FileInfo.Identifier +
-              '" class="open-popup"></a>');
+            '" class="open-popup"></a>');
           Output.Add('      <a href="#close" class="overlay" id="audio-' +
-              FileInfo.Identifier + '"></a>');
+            FileInfo.Identifier + '"></a>');
           Output.Add('      <div class="popup">');
           Output.Add('        <dl>');
 
@@ -182,11 +181,11 @@ begin
           begin
             Output.Add('          <dt>Played music:</dt>');
             Output.Add('          <dd>' + TStringReplacer.NL2BR
-                (HTMLEscape(FileInfo.AudioTracks)) + '</dd>');
+              (HTMLEscape(FileInfo.AudioTracks)) + '</dd>');
           end;
 
           if (FileInfo.AudioTracks <> '') and (FileInfo.AudioType <> NotSet)
-            then
+          then
           begin
             Output.Add('');
           end;
@@ -195,7 +194,7 @@ begin
           begin
             Output.Add('          <dt>Audio Type:</dt>');
             Output.Add('          <dd>' + TFileInfo.FormatAudioType
-                (FileInfo.AudioType) + '</dd>');
+              (FileInfo.AudioType) + '</dd>');
           end;
 
           Output.Add('        </dl>');
@@ -212,9 +211,9 @@ begin
 
           Output.Add('    <dt>Duplicates:</dt>');
           Output.Add('    <dd><a href="#duplicate-' + FileInfo.Identifier +
-              '" class="open-popup"></a>');
+            '" class="open-popup"></a>');
           Output.Add('      <a href="#close" class="overlay" id="duplicate-' +
-              FileInfo.Identifier + '"></a>');
+            FileInfo.Identifier + '"></a>');
           Output.Add('      <div class="popup">');
           Output.Add('        <table>');
           Output.Add('          <thead>');
@@ -226,8 +225,8 @@ begin
             Output.Add('              <th>Played music</th>');
           end;
 
-          Output.Add(
-            '              <th><abbr title="Cyclic Redundancy Check">CRC</abbr></th>');
+          Output.Add
+            ('              <th><abbr title="Cyclic Redundancy Check">CRC</abbr></th>');
           Output.Add('              <th>Reason</th>');
           Output.Add('            </tr>');
           Output.Add('          </thead>');
@@ -237,18 +236,18 @@ begin
           begin
             Output.Add('            <tr>');
             Output.Add('              <td>' + TStringReplacer.NL2BR
-                (HTMLEscape(DuplicateEntry.Filenames)) + '</td>');
+              (HTMLEscape(DuplicateEntry.Filenames)) + '</td>');
 
             if DuplicateListHasAudioTracks then
             begin
               Output.Add('              <td>' + TStringReplacer.NL2BR
-                  (HTMLEscape(DuplicateEntry.AudioTracks)) + '</td>');
+                (HTMLEscape(DuplicateEntry.AudioTracks)) + '</td>');
             end;
 
             Output.Add('              <td>' + HTMLEscape(DuplicateEntry.CRC)
-                + '</td>');
-            Output.Add('              <td>' + HTMLEscape
-                (DuplicateEntry.GetFormatedReason(Key)) + '</td>');
+              + '</td>');
+            Output.Add('              <td>' +
+              HTMLEscape(DuplicateEntry.GetFormatedReason(Key)) + '</td>');
             Output.Add('            </tr>');
           end;
 
@@ -264,16 +263,16 @@ begin
         begin
           Output.Add('    <dt>Description:</dt>');
           Output.Add('    <dd>' + TStringReplacer.NL2BR
-              (HTMLEscape(FileInfo.Description)) + '</dd>');
+            (HTMLEscape(FileInfo.Description)) + '</dd>');
           Output.Add('');
         end;
 
         Output.Add('    <dt>Size:</dt>');
         Output.Add('    <dd>' + TFileInfo.FormatFileSize(FileInfo.FileSize)
-            + '</dd>');
+          + '</dd>');
         Output.Add('');
-        Output.Add(
-          '    <dt><abbr title="Cyclic Redundancy Check">CRC</abbr>:</dt>');
+        Output.Add
+          ('    <dt><abbr title="Cyclic Redundancy Check">CRC</abbr>:</dt>');
         Output.Add('    <dd>' + HTMLEscape(FileInfo.CRC) + '</dd>');
         Output.Add('');
 
@@ -285,13 +284,13 @@ begin
         end;
 
         Output.Add('    <dt><label for="key-' + FileInfo.Identifier +
-            '">Key:</label></dt>');
+          '">Key:</label></dt>');
         Output.Add('    <dd><input id="key-' + FileInfo.Identifier +
-            '" type="text" readonly="readonly" value="' + Key + '"></dd>');
+          '" type="text" readonly="readonly" value="' + Key + '"></dd>');
         Output.Add('');
         Output.Add('    <dt>Download:</dt>');
-        Output.Add('    <dd><a href="/' + Key + '">' + HTMLEscape(KeyFilename)
-            + '</a></dd>');
+        Output.Add('    <dd><a href="/' + Key + '">' + HTMLEscape(KeyFilename) +
+          '</a></dd>');
         Output.Add('  </dl>');
 
         if (FileInfo.FileType = Movie) or (FileInfo.FileType = Image) then
@@ -301,22 +300,20 @@ begin
           if FileInfo.HasBigThumbnail then
           begin
             Output.Add('    <a href="' + TStringReplacer.URLEncode
-                (FileInfo.BigThumbnailFilename) +
-                '" title="view big thumbnail"><img src="' +
-                TStringReplacer.URLEncode(FileInfo.ThumbnailFilename)
-                + '" alt="thumbnail of the file ' + HTMLEscape(KeyFilename)
-                + '" width="' + IntToStr(FileInfo.ThumbnailWidth)
-                + '" height="' + IntToStr(FileInfo.ThumbnailHeight)
-                + '"></a>');
+              (FileInfo.BigThumbnailFilename) +
+              '" title="view big thumbnail"><img src="' +
+              TStringReplacer.URLEncode(FileInfo.ThumbnailFilename) +
+              '" alt="thumbnail of the file ' + HTMLEscape(KeyFilename) +
+              '" width="' + IntToStr(FileInfo.ThumbnailWidth) + '" height="' +
+              IntToStr(FileInfo.ThumbnailHeight) + '"></a>');
           end
           else
           begin
             Output.Add('    <img src="' + TStringReplacer.URLEncode
-                (FileInfo.ThumbnailFilename)
-                +
-                '" alt="thumbnail of the file ' + HTMLEscape(KeyFilename)
-                + '" width="' + IntToStr(FileInfo.ThumbnailWidth)
-                + '" height="' + IntToStr(FileInfo.ThumbnailHeight) + '">');
+              (FileInfo.ThumbnailFilename) + '" alt="thumbnail of the file ' +
+              HTMLEscape(KeyFilename) + '" width="' +
+              IntToStr(FileInfo.ThumbnailWidth) + '" height="' +
+              IntToStr(FileInfo.ThumbnailHeight) + '">');
           end;
           Output.Add('  </div>');
         end;
@@ -330,13 +327,13 @@ begin
     Output.Add('  <h2 id="keys"><label for="all">All keys</label></h2>');
     Output.Add('');
     Output.Add('  <div>');
-    Output.Add('    <textarea id="all" cols="100" rows="' + IntToStr
-        (Files.Count + 2) + '" readonly="readonly">');
+    Output.Add('    <textarea id="all" cols="100" rows="' +
+      IntToStr(Files.Count + 2) + '" readonly="readonly">');
 
     Output.Add(SiteKey + IntToStr(MaxEdition) + '/' + TStringReplacer.URLEncode
-        (CRCPath + CRCFile));
+      (CRCPath + CRCFile));
     Output.Add(SiteKey + IntToStr(MaxEdition) + '/' + TStringReplacer.URLEncode
-        (CRCPath + SFVFile));
+      (CRCPath + SFVFile));
 
     for FileInfo in Files do
     begin

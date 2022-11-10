@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -124,8 +124,8 @@ end;
 
 function TKey.GetKeyWithoutEdition: string;
 begin
-  Result := GetEnumName(TypeInfo(TKeyType), Ord(FType))
-    + '@' + FCrypto + '/' + FFilename;
+  Result := GetEnumName(TypeInfo(TKeyType), Ord(FType)) + '@' + FCrypto + '/' +
+    FFilename;
 
   if FType = USK then
   begin

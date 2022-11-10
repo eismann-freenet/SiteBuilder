@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,8 +44,8 @@ begin
 
     if ParamCount < 2 then
     begin
-      raise Exception.Create(
-        'Parameter(s) 2..n have to be a filename of a video!');
+      raise Exception.Create
+        ('Parameter(s) 2..n have to be a filename of a video!');
     end;
 
     Config := nil;
@@ -53,10 +53,10 @@ begin
     try
       Config := TConfig.Create(ConfigFile);
 
-      VideoThumbnailCountHorizontal := Config.ReadInteger
-        (VIDEO_THUMBNAIL_COUNT_HORIZONTAL);
-      VideoThumbnailCountVertical := Config.ReadInteger
-        (VIDEO_THUMBNAIL_COUNT_VERTICAL);
+      VideoThumbnailCountHorizontal :=
+        Config.ReadInteger(VIDEO_THUMBNAIL_COUNT_HORIZONTAL);
+      VideoThumbnailCountVertical :=
+        Config.ReadInteger(VIDEO_THUMBNAIL_COUNT_VERTICAL);
       VideoThumbnailMaxWidth := Config.ReadInteger(VIDEO_THUMBNAIL_MAX_WIDTH);
       VideoTimeFormat := Config.ReadString(VIDEO_TIME_FORMAT);
       ImageThumbnailMaxHeight := Config.ReadInteger(IMAGE_THUMBNAIL_MAX_HEIGHT);

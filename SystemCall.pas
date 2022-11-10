@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -183,7 +183,7 @@ begin
 end;
 
 function StrCmpLogicalW(const P1, P2: PWideChar): Integer; stdcall;
-external 'Shlwapi.dll';
+  external 'Shlwapi.dll';
 
 function StringCompare(const Text1, Text2: string): Integer;
 begin

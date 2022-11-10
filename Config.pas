@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");

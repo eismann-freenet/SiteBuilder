@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -95,15 +95,15 @@ begin
       DuplicatePath := Config.ReadString(DUPLICATE_PATH);
       DuplicateFileExtension := Config.ReadString(DUPLICATE_FILE_EXTENSION);
       Files := TStringList.Create;
-      TSiteBuilder.GetFileList(DuplicatePath, DuplicateFileExtension, false,
-        Files);
+      TSiteBuilder.GetFileList(DuplicatePath, DuplicateFileExtension,
+        false, Files);
       DuplicateTree := TDuplicateTree.Create;
       DuplicateTree.LoadData(Files);
 
-      VideoThumbnailCountHorizontal := Config.ReadInteger
-        (VIDEO_THUMBNAIL_COUNT_HORIZONTAL);
-      VideoThumbnailCountVertical := Config.ReadInteger
-        (VIDEO_THUMBNAIL_COUNT_VERTICAL);
+      VideoThumbnailCountHorizontal :=
+        Config.ReadInteger(VIDEO_THUMBNAIL_COUNT_HORIZONTAL);
+      VideoThumbnailCountVertical :=
+        Config.ReadInteger(VIDEO_THUMBNAIL_COUNT_VERTICAL);
       VideoThumbnailMaxWidth := Config.ReadInteger(VIDEO_THUMBNAIL_MAX_WIDTH);
       VideoTimeFormat := Config.ReadString(VIDEO_TIME_FORMAT);
       ImageThumbnailMaxHeight := Config.ReadInteger(IMAGE_THUMBNAIL_MAX_HEIGHT);
@@ -155,8 +155,8 @@ begin
         end
         else
         begin
-          SimilarVideoLength := KeyCache.GetSimilarVideoLength(VideoLength,
-            1000);
+          SimilarVideoLength := KeyCache.GetSimilarVideoLength
+            (VideoLength, 1000);
           for KeyID in SimilarVideoLength do
           begin
             ShowKey(KeyCache.GetKey(KeyID));

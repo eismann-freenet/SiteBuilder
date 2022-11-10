@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,9 +33,9 @@ type
     destructor Destroy; override;
     procedure LoadData(Filenames: TStringList;
       Thumbnail, BigThumbnail: TThumbnail; KeyCache: TKeyCache;
-      BookmarksParser: TBookmarksParser;
-      const NewKeyName, DataPath, SitePath, ThumbnailExtension, ThumbnailPath,
-      CRCExtension: string; DuplicateTree: TDuplicateTree);
+      BookmarksParser: TBookmarksParser; const NewKeyName, DataPath, SitePath,
+      ThumbnailExtension, ThumbnailPath, CRCExtension: string;
+      DuplicateTree: TDuplicateTree);
   end;
 
 implementation
@@ -127,16 +127,13 @@ begin
 
         CurrentFileInfo := TFileInfo.Create(Thumbnail, BigThumbnail, KeyCache,
           BookmarksParser, DataPath, SitePath, ThumbnailExtension,
-          ThumbnailPath, CRCExtension,
-          CSVFile.GetValue(IndexSections), CSVFile.GetValue(IndexKey),
-          CSVFile.GetValue(IndexIsNewKey),
+          ThumbnailPath, CRCExtension, CSVFile.GetValue(IndexSections),
+          CSVFile.GetValue(IndexKey), CSVFile.GetValue(IndexIsNewKey),
           CSVFile.GetValue(IndexIsFullThumbnailRequired),
           CSVFile.GetValue(IndexOtherFilenames),
           CSVFile.GetValue(IndexDescription),
-          CSVFile.GetValue(IndexPlayedMusic),
-          CSVFile.GetValue(IndexAudioType),
-          CSVFile.GetValue(IndexHasActiveLink),
-          DuplicateList, NewKeyName);
+          CSVFile.GetValue(IndexPlayedMusic), CSVFile.GetValue(IndexAudioType),
+          CSVFile.GetValue(IndexHasActiveLink), DuplicateList, NewKeyName);
 
         for Section in AltSections do
         begin

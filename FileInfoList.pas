@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -127,8 +127,8 @@ begin
           end
           else if CRCType = SFV then
           begin
-            AddSFVLine(Output, CRCEntry.Filename, Copy(CRCEntry.Path, 2,
-                Length(CRCEntry.Path) - 1), CRCEntry.CRC);
+            AddSFVLine(Output, CRCEntry.Filename,
+              Copy(CRCEntry.Path, 2, Length(CRCEntry.Path) - 1), CRCEntry.CRC);
           end;
         end;
       end;

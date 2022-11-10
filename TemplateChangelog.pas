@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,14 +42,14 @@ begin
     Output.Add('<!DOCTYPE html>');
     Output.Add('<html lang="en">');
     Output.Add('<head>');
-    Output.Add(
-      '  <meta http-equiv="content-type" content="text/html; charset=utf-8">');
-    Output.Add('  <meta name="author" content="' + HTMLEscape(SiteAuthor)
-        + '">');
-    Output.Add('  <meta name="description" content="' + HTMLEscape
-        (SiteDescription) + '">');
-    Output.Add('  <meta name="keywords" content="' + HTMLEscape(SiteKeywords)
-        + '">');
+    Output.Add
+      ('  <meta http-equiv="content-type" content="text/html; charset=utf-8">');
+    Output.Add('  <meta name="author" content="' +
+      HTMLEscape(SiteAuthor) + '">');
+    Output.Add('  <meta name="description" content="' +
+      HTMLEscape(SiteDescription) + '">');
+    Output.Add('  <meta name="keywords" content="' +
+      HTMLEscape(SiteKeywords) + '">');
     Output.Add('  <link rel="stylesheet" href="design.css">');
     Output.Add('  <title>Changelog</title>');
     Output.Add('</head>');
@@ -58,7 +58,7 @@ begin
     Output.Add('');
     Output.Add('  <p>');
     Output.Add('    <a href="' + IndexFilename +
-        '">&lt; Back to the index</a>');
+      '">&lt; Back to the index</a>');
     Output.Add('  </p>');
     Output.Add('');
     Output.Add('  <table>');
@@ -75,7 +75,7 @@ begin
       Output.Add('      <tr>');
       Output.Add('        <td>' + IntToStr(ChangelogEntry.Edition) + '</td>');
       Output.Add('        <td>' + HTMLEscape(ChangelogEntry.Description)
-          + '</td>');
+        + '</td>');
       Output.Add('      </tr>');
     end;
 
