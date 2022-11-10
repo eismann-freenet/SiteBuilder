@@ -57,3 +57,5 @@ Version 1.2
 - Added the tools CopyFilesFromSection and DuplicateChecker.
 - Added documentation for all tools.
 - Fixed a lot of bugs.
+- Use HTML5 for the generated freesite.
+- Allow trim of HTML output.
