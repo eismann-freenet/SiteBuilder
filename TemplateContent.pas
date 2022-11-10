@@ -19,25 +19,25 @@ unit TemplateContent;
 interface
 
 uses
-  SiteBuilder, FileInfoList;
+  SysUtils, SiteBuilder, FileInfoList;
 
 procedure WriteContent(const Section, Filename, Title, InfoContent,
   IndexFilename: string; const Files: TFileInfoList;
   const OutputExtension, SiteKey, CRCPath, CRCFile, SFVFile: string;
   const MaxEdition: Integer; const SiteAuthor, SiteDescription,
-  SiteKeywords: string; const TrimHTML: Boolean);
+  SiteKeywords: string; const TrimHTML: Boolean; Locale: TFormatSettings);
 
 implementation
 
 uses
-  Classes, SysUtils, FileInfo, HTTPUtil, StringReplacer, SiteEncoding,
+  Classes, FileInfo, HTTPUtil, StringReplacer, SiteEncoding,
   DuplicateEntry, DuplicateList;
 
 procedure WriteContent(const Section, Filename, Title, InfoContent,
   IndexFilename: string; const Files: TFileInfoList;
   const OutputExtension, SiteKey, CRCPath, CRCFile, SFVFile: string;
   const MaxEdition: Integer; const SiteAuthor, SiteDescription,
-  SiteKeywords: string; const TrimHTML: Boolean);
+  SiteKeywords: string; const TrimHTML: Boolean; Locale: TFormatSettings);
 var
   Key, KeyFilename, OtherSection: string;
   DuplicateListHasAudioTracks: Boolean;
@@ -78,7 +78,7 @@ begin
     Output.Add('    <dd>' + IntToStr(Files.Count) + '</dd>');
     Output.Add('');
     Output.Add('    <dt>Total size:</dt>');
-    Output.Add('    <dd>' + TFileInfo.FormatFileSize(Files.FileSizeSum)
+    Output.Add('    <dd>' + TFileInfo.FormatFileSize(Files.FileSizeSum, Locale)
       + '</dd>');
     Output.Add('');
     Output.Add
@@ -268,8 +268,8 @@ begin
         end;
 
         Output.Add('    <dt>Size:</dt>');
-        Output.Add('    <dd>' + TFileInfo.FormatFileSize(FileInfo.FileSize)
-          + '</dd>');
+        Output.Add('    <dd>' + TFileInfo.FormatFileSize(FileInfo.FileSize,
+          Locale) + '</dd>');
         Output.Add('');
         Output.Add
           ('    <dt><abbr title="Cyclic Redundancy Check">CRC</abbr>:</dt>');

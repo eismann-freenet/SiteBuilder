@@ -19,7 +19,7 @@ unit Config;
 interface
 
 uses
-  IniFiles;
+  SysUtils, IniFiles;
 
 type
   TConfig = class
@@ -33,6 +33,7 @@ type
     function ReadString(Ident: string): string;
     function ReadInteger(Ident: string): Integer;
     function ReadBoolean(Ident: string): Boolean;
+    class function GetLocale(): TFormatSettings;
   end;
 
 const
@@ -79,11 +80,10 @@ const
 
 implementation
 
-uses
-  SysUtils;
-
 const
   ConfigKey = 'SiteBuilder';
+
+  OUTPUT_LOCALE = 'en-US';
 
 constructor TConfig.Create(const Filename: string);
 begin
@@ -113,6 +113,11 @@ end;
 function TConfig.ReadBoolean(Ident: string): Boolean;
 begin
   Result := FConfigFile.ReadBool(ConfigKey, Ident, false);
+end;
+
+class function TConfig.GetLocale(): TFormatSettings;
+begin
+  Result := TFormatSettings.Create(OUTPUT_LOCALE);
 end;
 
 end.

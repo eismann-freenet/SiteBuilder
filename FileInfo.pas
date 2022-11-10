@@ -83,7 +83,8 @@ type
       const NewKeyName: string);
     destructor Destroy; override;
     class function DetectType(const Filename: string): TFileType;
-    class function FormatFileSize(const Size: Int64): string;
+    class function FormatFileSize(const Size: Int64;
+      Locale: TFormatSettings): string;
     class function FormatAudioType(const AudioType: TAudioType): string;
     class function SectionToTitle(const Section: string): string;
     class function SectionToURL(const Section, OutputExtension: string): string;
@@ -124,7 +125,8 @@ type
 implementation
 
 uses
-  StrUtils, Vcl.Imaging.JPEG, CSVFile, Logger, CRC32, TypInfo, StringReplacer, Sort,
+  StrUtils, Vcl.Imaging.JPEG, CSVFile, Logger, CRC32, TypInfo, StringReplacer,
+  Sort,
   SystemCall;
 
 { TFileInfo }
@@ -319,7 +321,8 @@ begin
   Result := GetEnumName(TypeInfo(TAudioType), Integer(AudioType));
 end;
 
-class function TFileInfo.FormatFileSize(const Size: Int64): string;
+class function TFileInfo.FormatFileSize(const Size: Int64;
+  Locale: TFormatSettings): string;
 const
   Units: array [1 .. 4] of string = ('Byte', 'KB', 'MB', 'GB');
 var
@@ -337,11 +340,11 @@ begin
 
   if SizeUnit = 1 then
   begin
-    Result := Format('%.0f', [FileSizeDbl]) + ' ' + Units[SizeUnit];
+    Result := Format('%.0f', [FileSizeDbl], Locale) + ' ' + Units[SizeUnit];
   end
   else
   begin
-    Result := Format('%.2f', [FileSizeDbl]) + ' ' + Units[SizeUnit];
+    Result := Format('%.2f', [FileSizeDbl], Locale) + ' ' + Units[SizeUnit];
   end;
 end;
 
