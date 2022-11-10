@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,40 +19,35 @@ unit RegEx;
 interface
 
 uses
-  PerlRegEx, SysUtils;
+  SysUtils;
 
 type
   EInvalidRegEx = class(Exception)
   end;
 
-function GetRegExResult(RegexObj: TPerlRegEx;
-  const Subject, RegEx: string): string;
+function GetRegExResult(const Subject, Pattern: string): string;
 
 implementation
 
-function GetRegExResult(RegexObj: TPerlRegEx;
-  const Subject, RegEx: string): string;
+uses
+  RegularExpressions;
+
+function GetRegExResult(const Subject, Pattern: string): string;
 var
   i: Integer;
+  Match: TMatch;
+  Groups: TGroupCollection;
 begin
-  Result := '';
-  RegexObj.Subject := UTF8Encode(Subject);
-  RegexObj.RegEx := UTF8Encode(RegEx);
-
-  try
-    RegexObj.Match;
-    RegexObj.StoreGroups;
-    for i := 1 to RegexObj.GroupCount do
-    begin
-      if Length(RegexObj.Groups[i]) > 0 then
-      begin
-        Result := UTF8ToString(RegexObj.Groups[i]);
-      end;
-    end;
-  except
-    on EAssertionFailed do
-      raise EInvalidRegEx.CreateFmt('No match for regex "%s" and subject "%s"!',
-        [RegEx, Subject]);
+  Match := TRegEx.Match(Subject, Pattern);
+  if not Match.Success then
+  begin
+    raise EInvalidRegEx.CreateFmt('No match for regex "%s" and subject "%s"!',
+      [Pattern, Subject]);
+  end;
+  Groups := Match.Groups;
+  for i := 1 to Groups.Count - 1 do // index 0 = full matched text
+  begin
+    Result := Groups.Item[i].Value;
   end;
 end;
 

@@ -63,7 +63,7 @@ type
 implementation
 
 uses
-  SysUtils, SystemCall, RegEx, PerlRegEx, CSVFile, StrUtils, Logger;
+  SysUtils, SystemCall, RegEx, CSVFile, StrUtils, Logger;
 
 { TThumbnail }
 
@@ -192,15 +192,12 @@ function TThumbnail.GetVideoLength(const Filename: string): Integer;
 var
   Output, LengthRaw: string;
   LengthParts: TStringList;
-  RegEx: TPerlRegEx;
   IsError: Boolean;
 begin
-  RegEx := nil;
   LengthParts := nil;
   Output := '';
   try
     IsError := false;
-    RegEx := TPerlRegEx.Create;
     LengthParts := TStringList.Create;
 
     try
@@ -214,11 +211,11 @@ begin
           [Filename]));
         ExecuteOutputCached(Format(VideoLengthFallbackCommand,
           [FFFMPEG, Filename]), Output);
-        LengthRaw := GetRegExResult(RegEx, Output, VideoLengthFailPattern);
+        LengthRaw := GetRegExResult(Output, VideoLengthFailPattern);
       end
       else
       begin
-        LengthRaw := GetRegExResult(RegEx, Output, VideoLengthPattern);
+        LengthRaw := GetRegExResult(Output, VideoLengthPattern);
       end;
 
       TCSVFile.Split(LengthParts, LengthRaw, VideoLengthSeparator, '"');
@@ -249,7 +246,6 @@ begin
       (StrToInt(LengthParts[1]) * 60000) +
       Trunc(StrToFloat(LengthParts[2]) * 1000);
   finally
-    RegEx.Free;
     LengthParts.Free;
   end;
 end;
