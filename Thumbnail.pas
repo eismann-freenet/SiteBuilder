@@ -114,7 +114,6 @@ var
     EditScreenShotFilename, AllFiles, Output: string;
   SubLength, I, ThumbnailCount, SeekPos, RenderPos: Integer;
   FilesToDelete: TStringList;
-  RegEx: TPerlRegEx;
 begin
   AllFiles := '';
   Output := '';
@@ -123,10 +122,8 @@ begin
   SubLength := GetVideoLength(Filename) div (ThumbnailCount + 1);
   DeleteFile(OutputFilename);
 
-  RegEx := nil;
   FilesToDelete := nil;
   try
-    RegEx := TPerlRegEx.Create;
     FilesToDelete := TStringList.Create;
 
     for I := 1 to ThumbnailCount do
@@ -180,7 +177,6 @@ begin
     end;
   finally
     FilesToDelete.Free;
-    RegEx.Free;
   end;
   if not FileExists(OutputFilename) then
   begin

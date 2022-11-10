@@ -73,7 +73,9 @@ begin
     end;
   except
     on E: Exception do
+    begin
       TLogger.LogFatal(E.Message);
+    end;
   end;
   writeln('Press ENTER to exit...');
   readln;

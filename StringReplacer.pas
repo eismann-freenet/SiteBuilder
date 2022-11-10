@@ -19,7 +19,7 @@ unit StringReplacer;
 interface
 
 uses
-  Generics.Collections, Classes, PerlRegEx, Key;
+  Generics.Collections, Classes, Key;
 
 type
   TStringReplacer = class
@@ -32,7 +32,6 @@ type
     class var FAlbanianAlphabet: TDictionary<string, string>;
     class var FPortugueseAlphabet: TDictionary<string, string>;
     class var FSpecialCharsURL: TDictionary<string, string>;
-    class var FRegEx: TPerlRegEx;
 
   protected
     class constructor Create;
@@ -60,8 +59,6 @@ uses
 
 class constructor TStringReplacer.Create;
 begin
-  FRegEx := TPerlRegEx.Create;
-
   FSpecialChars := TDictionary<string, string>.Create;
   FSpecialChars.Add('„', '"');
   FSpecialChars.Add('“', '"');
@@ -196,7 +193,6 @@ end;
 
 class destructor TStringReplacer.Destroy;
 begin
-  FRegEx.Free;
   FSpecialChars.Free;
   FCyrillicAlphabet.Free;
   FGermanAlphabet.Free;
