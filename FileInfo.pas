@@ -124,7 +124,7 @@ type
 implementation
 
 uses
-  StrUtils, JPEG, CSVFile, Logger, CRC32, TypInfo, StringReplacer, Sort,
+  StrUtils, Vcl.Imaging.JPEG, CSVFile, Logger, CRC32, TypInfo, StringReplacer, Sort,
   SystemCall;
 
 { TFileInfo }

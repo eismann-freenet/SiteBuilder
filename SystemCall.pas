@@ -33,7 +33,7 @@ function StringCompare(const Text1, Text2: string): Integer;
 implementation
 
 uses
-  Windows, Forms, SysUtils;
+  Windows, Vcl.Forms, SysUtils;
 
 function ReadPipe(Pipe: THandle): string;
 var
