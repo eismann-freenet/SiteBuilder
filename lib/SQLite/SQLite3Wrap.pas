@@ -1,30 +1,29 @@
 {*
  * SQLite for Delphi and FreePascal/Lazarus
  *
- * This unit contains easy-to-use object wrapper over SQLite3 API functions
+ * This unit contains easy-to-use object wrapper over SQLite3 API functions.
  *
- * Copyright 2010-2013 Yury Plashenkov
- * http://plashenkov.github.io/sqlite/
+ * Copyright (c) 2013 Yuri Plashenkov
  *
- * The MIT License (MIT)
+ * MIT License
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom
- * the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *}
 
 unit SQLite3Wrap;
@@ -58,7 +57,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure Open(const FileName: WideString);
+    procedure Open(const FileName: WideString; Flags: Integer = 0);
     procedure Close;
 
     procedure Execute(const SQL: WideString);
@@ -236,10 +235,13 @@ begin
   Result := sqlite3_last_insert_rowid(FHandle);
 end;
 
-procedure TSQLite3Database.Open(const FileName: WideString);
+procedure TSQLite3Database.Open(const FileName: WideString; Flags: Integer);
 begin
   Close;
-  Check(sqlite3_open(PAnsiChar(StrToUTF8(FileName)), FHandle));
+  if Flags = 0 then
+    Check(sqlite3_open(PAnsiChar(StrToUTF8(FileName)), FHandle))
+  else
+    Check(sqlite3_open_v2(PAnsiChar(StrToUTF8(FileName)), FHandle, Flags, nil));
 end;
 
 function TSQLite3Database.Prepare(const SQL: WideString): TSQLite3Statement;
