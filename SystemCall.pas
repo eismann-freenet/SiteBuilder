@@ -33,7 +33,7 @@ function StringCompare(const Text1, Text2: string): Integer;
 implementation
 
 uses
-  Windows, Vcl.Forms, SysUtils;
+  Windows, Vcl.Forms, SysUtils, IOUtils;
 
 function ReadPipe(Pipe: THandle): string;
 var
@@ -140,13 +140,8 @@ begin
 end;
 
 function GetRandomTempFilename: string;
-var
-  Path, Filename: array [0 .. MAX_PATH - 1] of Char;
 begin
-  GetTempPath(SizeOf(Path), Path);
-  GetTempFileName(Path, '', 0, Filename);
-
-  Result := Filename;
+  Result := TPath.GetTempFileName;
   SysUtils.DeleteFile(Result);
 end;
 
