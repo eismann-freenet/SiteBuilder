@@ -133,11 +133,12 @@ begin
 
     FThumbnail := TThumbnail.Create(VideoThumbnailCountHorizontal,
       VideoThumbnailCountVertical, VideoThumbnailMaxWidth, VideoTimeFormat,
-      ImageThumbnailMaxHeight, ThumbnailQuality, FFMPEGPath, ImageMagickPath);
+      ImageThumbnailMaxHeight, ThumbnailQuality, FFMPEGPath, ImageMagickPath,
+      TConfig.GetFFmpegLocale);
     FBigThumbnail := TThumbnail.Create(VideoBigThumbnailCountHorizontal,
       VideoBigThumbnailCountVertical, VideoBigThumbnailMaxWidth,
       VideoTimeFormat, ImageThumbnailMaxHeight, ThumbnailQuality, FFMPEGPath,
-      ImageMagickPath);
+      ImageMagickPath, TConfig.GetFFmpegLocale);
 
     KeyCacheFilename := Config.ReadString(KEY_CACHE_FILENAME);
     FKeyCacheDatabase := TKeyCache.Create(KeyCacheFilename);

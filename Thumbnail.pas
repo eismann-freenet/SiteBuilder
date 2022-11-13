@@ -19,7 +19,7 @@ unit Thumbnail;
 interface
 
 uses
-  Classes, Generics.Collections;
+  Classes, Generics.Collections, SysUtils;
 
 type
   TThumbnail = class
@@ -35,6 +35,7 @@ type
     FMontage: string;
     FVideoTimeFormat: string;
     FOneThumbnailWidth: string;
+    FFFmpegLocale: TFormatSettings;
 
     FCommandCache: TDictionary<string, string>;
 
@@ -48,7 +49,8 @@ type
     constructor Create(const VideoThumbnailCountHorizontal,
       VideoThumbnailCountVertical, VideoThumbnailMaxWidth: Integer;
       const VideoTimeFormat: string; const ImageThumbnailMaxHeight,
-      ThumbnailQuality: Integer; const FFMPEGPath, ImageMagickPath: string);
+      ThumbnailQuality: Integer; const FFMPEGPath, ImageMagickPath: string;
+      FFmpegLocale: TFormatSettings);
     destructor Destroy; override;
 
     function GetVideoLength(const Filename: string): Integer;
@@ -63,7 +65,7 @@ type
 implementation
 
 uses
-  SysUtils, SystemCall, RegEx, CSVFile, StrUtils, Logger;
+  SystemCall, RegEx, CSVFile, StrUtils, Logger;
 
 { TThumbnail }
 
@@ -219,8 +221,6 @@ begin
       end;
 
       TCSVFile.Split(LengthParts, LengthRaw, VideoLengthSeparator, '"');
-      LengthParts[2] := StringReplace(LengthParts[2],
-        VideoLengthDecimalSeparator, GetDecimalSeparator, [rfReplaceAll]);
     except
       on EStringListError do
       begin
@@ -244,7 +244,7 @@ begin
 
     Result := (StrToInt(LengthParts[0]) * 3600000) +
       (StrToInt(LengthParts[1]) * 60000) +
-      Trunc(StrToFloat(LengthParts[2]) * 1000);
+      Trunc(StrToFloat(LengthParts[2], FFFmpegLocale) * 1000);
   finally
     LengthParts.Free;
   end;
@@ -266,7 +266,8 @@ end;
 constructor TThumbnail.Create(const VideoThumbnailCountHorizontal,
   VideoThumbnailCountVertical, VideoThumbnailMaxWidth: Integer;
   const VideoTimeFormat: string; const ImageThumbnailMaxHeight, ThumbnailQuality
-  : Integer; const FFMPEGPath, ImageMagickPath: string);
+  : Integer; const FFMPEGPath, ImageMagickPath: string;
+  FFmpegLocale: TFormatSettings);
 begin
   FVideoThumbnailCountHorizontal := VideoThumbnailCountHorizontal;
   FVideoThumbnailCountVertical := VideoThumbnailCountVertical;
@@ -283,6 +284,7 @@ begin
   FMontage := ImageMagickPath + MontageExe;
   CheckCommand(FMontage);
   FCommandCache := TDictionary<string, string>.Create;
+  FFFmpegLocale := FFmpegLocale;
 end;
 
 destructor TThumbnail.Destroy;

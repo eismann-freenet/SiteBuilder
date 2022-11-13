@@ -34,6 +34,7 @@ type
     function ReadInteger(Ident: string): Integer;
     function ReadBoolean(Ident: string): Boolean;
     class function GetLocale(): TFormatSettings;
+    class function GetFFmpegLocale(): TFormatSettings;
   end;
 
 const
@@ -84,6 +85,7 @@ const
   ConfigKey = 'SiteBuilder';
 
   OUTPUT_LOCALE = 'en-US';
+  FFMPEG_LOCALE = 'en-US';
 
 constructor TConfig.Create(const Filename: string);
 begin
@@ -118,6 +120,11 @@ end;
 class function TConfig.GetLocale(): TFormatSettings;
 begin
   Result := TFormatSettings.Create(OUTPUT_LOCALE);
+end;
+
+class function TConfig.GetFFmpegLocale(): TFormatSettings;
+begin
+  Result := TFormatSettings.Create(FFMPEG_LOCALE);
 end;
 
 end.

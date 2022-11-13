@@ -27,7 +27,6 @@ function GetRandomTempFilename: string;
 function DeleteFile(const Filename: string): Boolean;
 function DeleteFiles(Files: TStringList): Boolean;
 function CopyFile(const Source, Destination: string): Boolean;
-function GetDecimalSeparator: Char;
 function StringCompare(const Text1, Text2: string): Integer;
 
 implementation
@@ -167,14 +166,6 @@ end;
 function CopyFile(const Source, Destination: string): Boolean;
 begin
   Result := Windows.CopyFile(PChar(Source), PChar(Destination), False);
-end;
-
-function GetDecimalSeparator: Char;
-var
-  Format: TFormatSettings;
-begin
-  GetLocaleFormatSettings(LOCALE_SYSTEM_DEFAULT, Format);
-  Result := Format.DecimalSeparator;
 end;
 
 function StrCmpLogicalW(const P1, P2: PWideChar): Integer; stdcall;

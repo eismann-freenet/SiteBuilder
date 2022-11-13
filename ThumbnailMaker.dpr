@@ -66,7 +66,8 @@ begin
       ThumbnailExtension := Config.ReadString(THUMBNAIL_EXTENSION);
       Thumbnail := TThumbnail.Create(VideoThumbnailCountHorizontal,
         VideoThumbnailCountVertical, VideoThumbnailMaxWidth, VideoTimeFormat,
-        ImageThumbnailMaxHeight, ThumbnailQuality, FFMPEGPath, ImageMagickPath);
+        ImageThumbnailMaxHeight, ThumbnailQuality, FFMPEGPath, ImageMagickPath,
+        TConfig.GetFFmpegLocale);
 
       for I := 2 to ParamCount do
       begin

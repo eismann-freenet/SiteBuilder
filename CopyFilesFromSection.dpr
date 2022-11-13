@@ -103,7 +103,8 @@ begin
       ImageMagickPath := Config.ReadString(IMAGEMAGICK_PATH);
       Thumbnail := TThumbnail.Create(VideoThumbnailCountHorizontal,
         VideoThumbnailCountVertical, VideoThumbnailMaxWidth, VideoTimeFormat,
-        ImageThumbnailMaxHeight, ThumbnailQuality, FFMPEGPath, ImageMagickPath);
+        ImageThumbnailMaxHeight, ThumbnailQuality, FFMPEGPath, ImageMagickPath,
+        TConfig.GetFFmpegLocale);
 
       KeyCacheFile := Config.ReadString(KEY_CACHE_FILENAME);
       KeyCache := TKeyCache.Create(KeyCacheFile);
