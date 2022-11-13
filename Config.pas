@@ -33,7 +33,7 @@ type
     function ReadString(Ident: string): string;
     function ReadInteger(Ident: string): Integer;
     function ReadBoolean(Ident: string): Boolean;
-    class function GetLocale(): TFormatSettings;
+    class function GetOutputLocale(): TFormatSettings;
     class function GetFFmpegLocale(): TFormatSettings;
   end;
 
@@ -117,7 +117,7 @@ begin
   Result := FConfigFile.ReadBool(ConfigKey, Ident, false);
 end;
 
-class function TConfig.GetLocale(): TFormatSettings;
+class function TConfig.GetOutputLocale(): TFormatSettings;
 begin
   Result := TFormatSettings.Create(OUTPUT_LOCALE);
 end;

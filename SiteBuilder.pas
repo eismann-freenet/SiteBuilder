@@ -253,7 +253,7 @@ begin
         InfoContent, FIndexFilename + FOutputExtension, Files, FOutputExtension,
         FSiteKey, FCRCPath + TFileInfo.PathDelimiterSite, CRCFile, SFVFile,
         FChangelog.MaxEdition, FSiteAuthor, FSiteDescription, FSiteKeywords,
-        FTrimHTML, TConfig.GetLocale);
+        FTrimHTML, TConfig.GetOutputLocale);
       Files.GenerateCRCFile(FullCRCPath + CRCFile, CRC);
       Files.GenerateCRCFile(FullCRCPath + SFVFile, SFV);
     end;
