@@ -226,7 +226,9 @@ var
   Files: TFileInfoList;
   Page: TIndexPage;
 begin
+  FKeyCacheDatabase.BeginTransaction;
   FKeyCacheDatabase.InitUsed;
+  FKeyCacheDatabase.Commit;
 
   ProcessSourceFiles;
 
@@ -258,7 +260,9 @@ begin
       Files.GenerateCRCFile(FullCRCPath + SFVFile, SFV);
     end;
 
+    FKeyCacheDatabase.BeginTransaction;
     FKeyCacheDatabase.RemoveUnsed;
+    FKeyCacheDatabase.Commit;
 
     ProcessStaticFiles;
   finally

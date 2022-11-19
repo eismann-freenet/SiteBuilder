@@ -122,12 +122,14 @@ begin
       TLogger.LogInfo(Format('CRC is "%s".', [CRC]));
 
       TLogger.LogInfo('Search for file in the database...');
+      KeyCache.BeginTransaction;
       KeyID := KeyCache.GetKeyIDByCRC(CRC);
       if KeyID <> -1 then
       begin
         ShowKey(KeyCache.GetKey(KeyID));
         FoundDuplicate := true;
       end;
+      KeyCache.Rollback;
 
       if not FoundDuplicate then
       begin
@@ -156,6 +158,7 @@ begin
         end
         else
         begin
+          KeyCache.BeginTransaction;
           SimilarVideoLength := KeyCache.GetSimilarVideoLength
             (VideoLength, 1000);
           for KeyID in SimilarVideoLength do
@@ -163,6 +166,7 @@ begin
             ShowKey(KeyCache.GetKey(KeyID));
             TLogger.LogInfo('');
           end;
+          KeyCache.Rollback;
         end;
       end;
     finally

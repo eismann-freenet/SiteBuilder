@@ -224,32 +224,43 @@ begin
 
     FFileType := DetectType(Key.Filename);
 
+    FKeyCache.BeginTransaction;
     KeyID := FKeyCache.GetKeyIDByKey(FFileKey.Key);
+    FKeyCache.Rollback;
     if KeyID = -1 then
     begin
       DetectSize;
       UpdateThumbnails;
       UpdateCRC;
+      FKeyCache.BeginTransaction;
       FKeyCache.Add(FFileKey.Key, FFileSize, FThumbnailHeight, FThumbnailWidth,
         FBigThumbnailHeight, FBigThumbnailWidth, FFileLength, FCRC);
+      FKeyCache.Commit;
     end
     else
     begin
+      FKeyCache.BeginTransaction;
       FKeyCache.SetUsed(KeyID);
+      FKeyCache.Commit;
 
+      FKeyCache.BeginTransaction;
       FFileSize := FKeyCache.GetFilesize(KeyID);
+      FKeyCache.Rollback;
       if FFileSize = 0 then
       begin
         DetectSize;
+        FKeyCache.BeginTransaction;
         FKeyCache.UpdateFilesize(KeyID, FFileSize);
+        FKeyCache.Commit;
       end;
 
+      FKeyCache.BeginTransaction;
       FThumbnailHeight := FKeyCache.GetThumbnailHeight(KeyID);
       FThumbnailWidth := FKeyCache.GetThumbnailWidth(KeyID);
       FBigThumbnailHeight := FKeyCache.GetBigThumbnailHeight(KeyID);
       FBigThumbnailWidth := FKeyCache.GetBigThumbnailWidth(KeyID);
-
       FFileLength := FKeyCache.GetVideoLength(KeyID);
+      FKeyCache.Rollback;
 
       if (FFileType = Movie) and
         ((FThumbnailHeight = 0) or (FThumbnailWidth = 0) or (FFileLength = 0) or
@@ -257,26 +268,34 @@ begin
         (FBigThumbnailWidth = 0)))) then
       begin
         UpdateThumbnails;
+        FKeyCache.BeginTransaction;
         FKeyCache.UpdateVideoLength(KeyID, FFileLength);
         FKeyCache.UpdateThumbnailHeight(KeyID, FThumbnailHeight);
         FKeyCache.UpdateThumbnailWidth(KeyID, FThumbnailWidth);
         FKeyCache.UpdateBigThumbnailHeight(KeyID, FBigThumbnailHeight);
         FKeyCache.UpdateBigThumbnailWidth(KeyID, FBigThumbnailWidth);
+        FKeyCache.Commit;
       end;
 
       if (FFileType = Image) and
         ((FThumbnailHeight = 0) or (FThumbnailWidth = 0)) then
       begin
         UpdateThumbnails;
+        FKeyCache.BeginTransaction;
         FKeyCache.UpdateThumbnailHeight(KeyID, FThumbnailHeight);
         FKeyCache.UpdateThumbnailWidth(KeyID, FThumbnailWidth);
+        FKeyCache.Commit;
       end;
 
+      FKeyCache.BeginTransaction;
       FCRC := FKeyCache.GetCRC(KeyID);
+      FKeyCache.Rollback;
       if FCRC = '' then
       begin
         UpdateCRC;
+        FKeyCache.BeginTransaction;
         FKeyCache.UpdateCRC(KeyID, FCRC);
+        FKeyCache.Commit;
       end;
     end;
 

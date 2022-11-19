@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2014 - 2017 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
+  Copyright 2014 - 2022 eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -99,6 +99,10 @@ type
     procedure InitUsed;
     procedure SetUsed(const KeyID: Integer);
     procedure RemoveUnsed;
+
+    procedure BeginTransaction;
+    procedure Commit;
+    procedure Rollback;
   end;
 
 implementation
@@ -340,6 +344,21 @@ begin
   FDB.Free;
 
   inherited Destroy;
+end;
+
+procedure TKeyCache.BeginTransaction;
+begin
+  FDB.BeginTransaction;
+end;
+
+procedure TKeyCache.Commit;
+begin
+  FDB.Commit;
+end;
+
+procedure TKeyCache.Rollback;
+begin
+  FDB.Rollback
 end;
 
 function TKeyCache.GetDatabaseVersion: Integer;
