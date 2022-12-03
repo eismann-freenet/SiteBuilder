@@ -78,6 +78,7 @@ const
   SITE_KEYWORDS = 'SiteKeywords';
   BOOKMARKS_FILE = 'BookmarksFile';
   TRIM_HTML = 'TrimHTML';
+  PAUSE_ON_EXIT = 'PauseOnExit';
 
 implementation
 

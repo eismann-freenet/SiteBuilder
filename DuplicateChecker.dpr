@@ -45,7 +45,7 @@ var
   DuplicateEntry: TDuplicateEntry;
   Thumbnail: TThumbnail;
   KeyID, VideoLength: Integer;
-  FoundDuplicate: Boolean;
+  FoundDuplicate, PauseOnExit: Boolean;
   SimilarVideoLength: TIntegerArray;
   Config: TConfig;
 
@@ -68,6 +68,7 @@ begin
   Files := nil;
   DuplicateTree := nil;
   Thumbnail := nil;
+  PauseOnExit := true;
   try
     ConfigFile := ParamStr(1);
     if ConfigFile = '' then
@@ -89,6 +90,7 @@ begin
     try
       Config := TConfig.Create(ConfigFile);
 
+      PauseOnExit := Config.ReadBoolean(PAUSE_ON_EXIT);
       KeyCacheFile := Config.ReadString(KEY_CACHE_FILENAME);
       KeyCache := TKeyCache.Create(KeyCacheFile);
 
@@ -180,7 +182,11 @@ begin
     on E: Exception do
       TLogger.LogFatal(E.Message);
   end;
-  writeln('Press ENTER to exit...');
-  readln;
+
+  if (PauseOnExit) then
+  begin
+    writeln('Press ENTER to exit...');
+    readln;
+  end;
 
 end.

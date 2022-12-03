@@ -31,9 +31,11 @@ var
     VideoThumbnailMaxWidth, ImageThumbnailMaxHeight, ThumbnailQuality: Integer;
   Thumbnail: TThumbnail;
   Config: TConfig;
+  PauseOnExit: Boolean;
   I: Integer;
 
 begin
+  PauseOnExit := true;
   try
     ConfigFile := ParamStr(1);
     if ConfigFile = '' then
@@ -53,6 +55,7 @@ begin
     try
       Config := TConfig.Create(ConfigFile);
 
+      PauseOnExit := Config.ReadBoolean(PAUSE_ON_EXIT);
       VideoThumbnailCountHorizontal :=
         Config.ReadInteger(VIDEO_THUMBNAIL_COUNT_HORIZONTAL);
       VideoThumbnailCountVertical :=
@@ -84,7 +87,11 @@ begin
     on E: Exception do
       TLogger.LogFatal(E.Message);
   end;
-  writeln('Press ENTER to exit...');
-  readln;
+
+  if (PauseOnExit) then
+  begin
+    writeln('Press ENTER to exit...');
+    readln;
+  end;
 
 end.

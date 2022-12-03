@@ -54,15 +54,25 @@ uses
 
 var
   SiteBuilder: TSiteBuilder;
+  PauseOnExit: Boolean;
+  Config: TConfig;
   ConfigFile: string;
 
 begin
+  PauseOnExit := true;
   try
     ConfigFile := ParamStr(1);
     if ConfigFile = '' then
     begin
       raise Exception.Create
         ('Parameter 1 have to be a configuration filename!');
+    end;
+
+    Config := TConfig.Create(ConfigFile);
+    try
+      PauseOnExit := Config.ReadBoolean(PAUSE_ON_EXIT);
+    finally
+      Config.Free;
     end;
 
     SiteBuilder := TSiteBuilder.Create(ConfigFile);
@@ -77,7 +87,11 @@ begin
       TLogger.LogFatal(E.Message);
     end;
   end;
-  writeln('Press ENTER to exit...');
-  readln;
+
+  if (PauseOnExit) then
+  begin
+    writeln('Press ENTER to exit...');
+    readln;
+  end;
 
 end.

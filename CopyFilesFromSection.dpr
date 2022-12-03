@@ -48,8 +48,10 @@ var
   DuplicateTree: TDuplicateTree;
   BookmarksParser: TBookmarksParser;
   Config: TConfig;
+  PauseOnExit: Boolean;
 
 begin
+  PauseOnExit := true;
   try
     ConfigFile := ParamStr(1);
     if ConfigFile = '' then
@@ -86,6 +88,7 @@ begin
     try
       Config := TConfig.Create(ConfigFile);
 
+      PauseOnExit := Config.ReadBoolean(PAUSE_ON_EXIT);
       ContentPath := Config.ReadString(CONTENT_PATH);
       ContentFileExtension := Config.ReadString(CONTENT_FILE_EXTENSION);
       Files := TStringList.Create;
@@ -167,7 +170,10 @@ begin
       TLogger.LogFatal(E.Message);
   end;
 
-  writeln('Press ENTER to exit...');
-  readln;
+  if (PauseOnExit) then
+  begin
+    writeln('Press ENTER to exit...');
+    readln;
+  end;
 
 end.
