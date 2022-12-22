@@ -26,7 +26,7 @@ SiteBuilder is bundled with some very handy programs:
 
 ## Requirements
 
-- [Embarcadero RAD Studio](https://www.embarcadero.com/products/rad-studio) 2010 Architect
+- [Embarcadero Delphi 10.4.2 Sydney Community Edition](https://www.embarcadero.com/products/delphi/starter)
 - [FFmpeg](https://ffmpeg.org/), (binary release for Windows)
 - [ImageMagick](https://imagemagick.org/), (binary release for Windows)
 - [Freenet](https://freenetproject.org/)
@@ -150,6 +150,7 @@ If SiteBuilder reads a property which does not exists in the given INI file, a d
 | SiteKeywords                     | String  | Keywords of your freesite                                                                                                                         |
 | BookmarksFile                    | String  | Filename of the bookmarks.dat in your installation of Freenet. Required to find the latest edition of USK keys                                    |
 | TrimHTML                         | Boolean | 1 = remove trailing and leading spaces of the HTML output, 0 = HTML output is nicely formated                                                     |
+| PauseOnExit                      | Boolean | 1 = Pause on exit, 0 = No pause on exit (useful when used from command line)                                                                      |
 
 ## Example
 
@@ -170,7 +171,6 @@ SiteBuilder is using the following libraries, which are included in the archive:
 
 - [CRC32.pas](http://web.archive.org/web/20190612171808/http://efg2.com/Lab/Mathematics/FileCheck.htm) from [FileCheck.zip](http://web.archive.org/web/20140706173556/http://efg2.com/Lab/Mathematics/FileCheck.ZIP) (slightly modified)
 - [SQLite](https://github.com/plashenkov/SQLite3-Delphi-FPC) (requires [sqlite3.dll](https://www.sqlite.org/download.html))
-- [TPerlRegEx](https://www.regular-expressions.info/delphi.html)
 
 ## Contact
 
