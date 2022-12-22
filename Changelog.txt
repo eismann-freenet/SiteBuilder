@@ -59,3 +59,10 @@ Version 1.2
 - Fixed a lot of bugs.
 - Use HTML5 for the generated freesite.
 - Allow trim of HTML output.
+
+Version 1.3
+- Update code for Delphi 10.4
+- Use proper locale for output of numbers
+- Replace TPerlRegEx with RegularExpressions
+- Update SQLite
+- Fixed a lot of bugs.
