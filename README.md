@@ -29,7 +29,7 @@ SiteBuilder is bundled with some very handy programs:
 - [Embarcadero Delphi 10.4.2 Sydney Community Edition](https://www.embarcadero.com/products/delphi/starter)
 - [FFmpeg](https://ffmpeg.org/), (binary release for Windows)
 - [ImageMagick](https://imagemagick.org/), (binary release for Windows)
-- [Freenet](https://freenetproject.org/)
+- [Hyphanet](https://www.hyphanet.org/)
 
 ## Build
 
@@ -148,7 +148,7 @@ If SiteBuilder reads a property which does not exists in the given INI file, a d
 | SiteAuthor                       | String  | Author of the freesite                                                                                                                            |
 | SiteDescription                  | String  | Description of your freesite                                                                                                                      |
 | SiteKeywords                     | String  | Keywords of your freesite                                                                                                                         |
-| BookmarksFile                    | String  | Filename of the bookmarks.dat in your installation of Freenet. Required to find the latest edition of USK keys                                    |
+| BookmarksFile                    | String  | Filename of the bookmarks.dat in your installation of Hyphanet. Required to find the latest edition of USK keys                                   |
 | TrimHTML                         | Boolean | 1 = remove trailing and leading spaces of the HTML output, 0 = HTML output is nicely formated                                                     |
 | PauseOnExit                      | Boolean | 1 = Pause on exit, 0 = No pause on exit (useful when used from command line)                                                                      |
 
@@ -190,5 +190,5 @@ I do not regularly read the email associated with GitHub.
 
 SiteBuilder by eismann@5H+yXYkQHMnwtQDzJB8thVYAAIs is licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
-[^1]: Freemail requires a running Freenet node
-[^2]: Link requires a running Freenet node at http://localhost:8888/
+[^1]: Freemail requires a running Hyphanet node
+[^2]: Link requires a running Hyphanet node at http://localhost:8888/
